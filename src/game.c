@@ -31,7 +31,7 @@ void place_snake(Game *game, size_t start_x, size_t start_y, Direction direction
         fprintf(stderr, "Invalid intial direction, defaulting to RIGHT\n");
         direction = RIGHT;
     }
-    game->snake = new_snake(NULL, 0, direction);
+    game->snake = new_snake(direction);
     for (int i = SNAKE_SIZE - 1; i >= 0; --i) {
         size_t x = direction == LEFT ? start_x + i : start_x - i + 1;
         Point p = {x, start_y};

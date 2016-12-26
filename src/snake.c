@@ -1,35 +1,27 @@
 #include "snake.h"
 
-#define BUFFER (FIELD_WIDTH * FIELD_HEIGHT)
-
-Snake *new_snake(Point *argv, size_t argc, Direction direction)
+Snake *new_snake(Direction direction)
 {
     Snake *snake = malloc(sizeof(Snake));
     if (snake == NULL) {
-        fprintf(stderr, "Error: allocation of snake failed");
+        fprintf(stderr, "Error: allocation of snake failed\n");
         exit(1);
     }
     puts("allocating body");
-    snake->body = malloc(BUFFER * sizeof(Point));
+    snake->body = malloc(SNAKE_BUFFER * sizeof(Point));
     if (snake == NULL) {
-        fprintf(stderr, "Error: allocation of snake body failed");
+        fprintf(stderr, "Error: allocation of snake body failed\n");
         exit(1);
     }
-    printf("### body ptr: %u\n", (unsigned) snake->body);
-    printf("assigning size: %lu\n", argc);
-    snake->size = argc;
     puts("assigning direction");
     snake->direction = direction;
     puts("assigning head");
-    snake->head = &(snake->body[BUFFER - 1]);
+    snake->head = &(snake->body[SNAKE_BUFFER - 1]);
     puts("assigning tail");
     snake->tail = snake->body;
     puts("assigning EOB");
-    snake->_end_of_buffer = &(snake->body[BUFFER - 1]);
+    snake->_end_of_buffer = &(snake->body[SNAKE_BUFFER - 1]);
 
-    for (int i = 0; i < argc; ++i) {
-        add_head(snake, argv[i]);
-    }
     return snake;
 }
 
@@ -41,11 +33,11 @@ void free_snake(Snake *snake)
 
 Point snake_head(Snake *snake)
 {
-    if (snake->size != 0) {
-        return *(snake->head);
-    } else {
-        fprintf(stderr, "Error: calling head() on empty snake");
+    if (snake->head == snake->tail) {
+        fprintf(stderr, "Error: calling head() on empty snake\n");
         exit(1);
+    } else {
+        return *(snake->head);
     }
 }
 
@@ -59,27 +51,28 @@ void add_head(Snake *snake, Point p)
     }
     snake->head->x = p.x;
     snake->head->y = p.y;
-    ++(snake->size);
 }
 
 Point pop_tail(Snake *snake)
 {
-    if ((snake->size)-- == 0) {
-        fprintf(stderr, "Error: calling pop_tail() on empty snake");
+    if (snake->head == snake->tail) {
+        fprintf(stderr, "Error: calling pop_tail() on empty snake\n");
         exit(1);
     } else if (snake->tail == snake->_end_of_buffer) {
         snake->tail = snake->body;
-        return snake->body[BUFFER - 1];
+        return snake->body[SNAKE_BUFFER - 1];
     } else {
         return *((snake->tail)++);
     }
 }
 
-void print_snake(FILE * restrict stream, Snake *snake)
+void print_snake(FILE *stream, Snake *snake)
 {
-    Point *ptr = snake->tail;
-    for (int i = 0; i < snake->size; ++i) {
-        fprintf(stream, "%lu %lu\n", ptr->x, ptr->y);
-        ptr = ptr == snake->_end_of_buffer ? snake->body : ptr + 1;
-    }
+    fprintf(stream, "%d;", snake->direction);
+    fprintf(stream, "%d;", (int) (snake->head - snake->body));
+    fprintf(stream, "%d;", (int) (snake->tail - snake->body));
+    fprintf(stdout, "%d;", (int) (snake->head - snake->body));
+    fprintf(stdout, "%d;", (int) (snake->tail - snake->body));
+    fwrite(snake->body, sizeof(Point), SNAKE_BUFFER, stream);
 }
+

@@ -60,7 +60,6 @@ void save(Game *game)
             fputc(game->field[j][i], savefile);
         }
     }
-    fprintf(savefile, "\n%lu %d\n", game->snake->size, game->snake->direction);
     print_snake(savefile, game->snake);
     fclose(savefile);
 }
@@ -71,7 +70,7 @@ void load(Game *game)
     FILE *savefile = fopen(SAVEFILE, "r");
 
     if (savefile == NULL) {
-        fprintf(stderr, "Load error: %s not found.", SAVEFILE);
+        fprintf(stderr, "Load error: %s not found.\n", SAVEFILE);
         return;
     }
 
@@ -80,22 +79,15 @@ void load(Game *game)
             game->field[j][i] = fgetc(savefile);
         }
     }
-    size_t size;
+
     Direction direction;
-    fscanf(savefile, "%lu %d", &size, &direction);
-    printf("size: %lu, direction: %d\n", size, direction);
+    int head_dif, tail_dif;
+    fscanf(savefile, "%d;%d;%d;", &direction, &head_dif, &tail_dif);
+    fread(game->snake->body, sizeof(Point), SNAKE_BUFFER, savefile);
 
-    game->snake->size = size;
     game->snake->direction = direction;
-    game->snake->head = game->snake->body + size - 1;
-    game->snake->tail = game->snake->body;
-
-    for (size_t i = 0, x, y; i < size; ++i) {
-        fscanf(savefile, "%lu %lu", &x, &y);
-        printf("scanned (%lu, %lu)\n", x, y);
-        (game->snake->body[i]).x = x;
-        (game->snake->body[i]).y = y;
-    }
+    game->snake->head = game->snake->body + head_dif;
+    game->snake->tail = game->snake->body + tail_dif;
 
     fclose(savefile);
     puts("done loading");

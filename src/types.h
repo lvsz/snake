@@ -18,7 +18,6 @@ typedef struct Snake {
     Point *head;
     Point *tail;
     Point *_end_of_buffer;
-    size_t size;
     Direction direction;
 } Snake;
 

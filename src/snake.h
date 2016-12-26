@@ -7,7 +7,7 @@
 #include "types.h"
 #include "defaults.h"
 
-Snake *new_snake(Point *, size_t, Direction);
+Snake *new_snake(Direction);
 void free_snake(Snake *);
 
 Point snake_head(Snake *);
