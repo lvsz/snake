@@ -2,9 +2,9 @@
 
 static SDL_Surface *window;
 
-#define BLACK SDL_MapRGB(window->format, 0, 0, 0)
-#define WHITE SDL_MapRGB(window->format, 255, 255, 255)
-#define RED SDL_MapRGB(window->format, 255, 0, 0)
+#define BLACK SDL_MapRGB(window->format, 0x00, 0x00, 0x00)
+#define WHITE SDL_MapRGB(window->format, 0xFF, 0xFF, 0xFF)
+#define RED   SDL_MapRGB(window->format, 0xFF, 0x00, 0x00)
 
 void draw_field(char **field)
 {
