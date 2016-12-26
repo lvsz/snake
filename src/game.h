@@ -6,16 +6,9 @@
 
 #include "snake.h"
 #include "window.h"
-#include "input.h"
+#include "io.h"
 #include "defaults.h"
 #include "types.h"
-
-typedef enum Direction {
-    UP,
-    DOWN,
-    LEFT,
-    RIGHT
-} Direction;
 
 void run_game();
 

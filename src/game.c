@@ -1,38 +1,43 @@
 #include "game.h"
 
-static char **field;
-
-void create_field()
+Game *game_init()
 {
-    field = malloc(FIELD_WIDTH * sizeof(char *));
+    Game *game = malloc(sizeof(Game));
+    game->field = malloc(FIELD_WIDTH * sizeof(char *));
     for (size_t i = 0; i < FIELD_WIDTH; ++i) {
-        field[i] = calloc(FIELD_HEIGHT, sizeof(char));
+        (game->field)[i] = calloc(FIELD_HEIGHT, sizeof(char));
     }
+    return game;
 }
 
-void destroy_field()
+void free_game(Game *game)
 {
+    printf("freeing %i subfields\n", FIELD_WIDTH);
     for (size_t i = 0; i < FIELD_WIDTH; ++i) {
-        free(field[i]);
+        free((game->field)[i]);
     }
-    free(field);
+    puts("freeing field");
+    free(game->field);
+    puts("freeing snake");
+    free_snake(game->snake);
+    puts("freeing game");
+    free(game);
 }
 
-Snake *place_snake(size_t start_x, size_t start_y, Direction direction)
+void place_snake(Game *game, size_t start_x, size_t start_y, Direction direction)
 {
     puts("placing snake");
     if (direction != LEFT && direction != RIGHT) {
         fprintf(stderr, "Invalid intial direction, defaulting to RIGHT\n");
         direction = RIGHT;
     }
-    Snake *snake = new_snake();
+    game->snake = new_snake(NULL, 0, direction);
     for (int i = SNAKE_SIZE - 1; i >= 0; --i) {
         size_t x = direction == LEFT ? start_x + i : start_x - i + 1;
         Point p = {x, start_y};
-        add_head(snake, p);
-        field[x][start_y] = 's';
+        add_head(game->snake, p);
+        game->field[x][start_y] = 's';
     }
-    return snake;
 }
 
 void pause()
@@ -43,68 +48,65 @@ void pause()
     }
 }
 
-static FILE *savefile;
-void print_point(void *v)
+int is_food(Game *game, Point p)
 {
-    Point *p = (Point *) v;
-    fprintf(savefile, "|%d %d|\n", p->x, p->y);
+    printf("is_food? x: %lu, y: %lu\n", p.x, p.y);
+    return game->field[p.x][p.y] == 'f';
 }
 
-void save(Snake *snake)
-{
-    savefile = fopen("save.txt", "w");
-    for_each_in_queue(print_point, snake);
-    fclose(savefile);
-}
-
-int is_food(Point p)
-{
-    return field[p.x][p.y] == 'f';
-}
-
-void new_food()
+void new_food(Game *game)
 {
     srand(time(NULL));
     size_t x = rand() % FIELD_WIDTH;
     size_t y = rand() % FIELD_HEIGHT;
-    while (field[x][y] != '\0') {
+    while (game->field[x][y] != '\0') {
         x = rand() % FIELD_WIDTH;
         y = rand() % FIELD_HEIGHT;
     }
-    field[x][y] = 'f';
+    printf("placed food at (%lu, %lu)\n", x, y);
+    game->field[x][y] = 'f';
 }
 
-void update_snake(Snake *snake, Direction direction)
+void update_snake(Game *game)
 {
-    Point head = head_point(snake);
-    switch (direction) {
+    Point head = snake_head(game->snake);
+    printf("old head: (%lu, %lu)\n", head.x, head.y);
+    switch (game->snake->direction) {
         case UP:
+            puts("up");
             head.y = (head.y > 0 ? head.y : FIELD_HEIGHT) - 1;
             break;
         case DOWN:
+            puts("down");
             head.y = (head.y + 1) % FIELD_HEIGHT;
             break;
         case LEFT:
+            puts("left");
             head.x = (head.x > 0 ? head.x : FIELD_WIDTH) - 1;
             break;
         case RIGHT:
+            puts("right");
             head.x = (head.x + 1) % FIELD_WIDTH;
             break;
     }
-    if (is_food(head)) {
-        add_head(snake, head);
-        field[head.x][head.y] = 's';
-        new_food();
+    printf("new head: (%lu, %lu)\n", head.x, head.y);
+    if (is_food(game, head)) {
+        add_head(game->snake, head);
+        game->field[head.x][head.y] = 's';
+        new_food(game);
     } else {
-        Point tail = pop_tail(snake);
-        field[tail.x][tail.y] = '\0';
-        switch (field[head.x][head.y]) {
+        Point tail = pop_tail(game->snake);
+        printf("tail.x: %lu, tail.y: %lu\n", tail.x, tail.y);
+        game->field[tail.x][tail.y] = '\0';
+        puts("popped tail");
+        switch (game->field[head.x][head.y]) {
             case 's':
+                puts("game over");
                 pause();
                 break;
             default:
-                add_head(snake, head);
-                field[head.x][head.y] = 's';
+                add_head(game->snake, head);
+                game->field[head.x][head.y] = 's';
                 break;
         }
     }
@@ -112,49 +114,53 @@ void update_snake(Snake *snake, Direction direction)
 
 void run_game()
 {
-    create_field();
-    Direction direction = RIGHT;
-    Snake *snake = place_snake(SNAKE_START_X, SNAKE_START_Y, direction);
-    new_food();
+    Game *game = game_init();
+    place_snake(game, SNAKE_START_X, SNAKE_START_Y, RIGHT);
+    new_food(game);
+    print_field(game->field);
 
     puts("starting");
     int playing = 1;
     int paused = 0;
     while (playing) {
-        draw_field(field);
+        draw_field(game->field);
+        update_snake(game);
         switch (read_input()) {
             case NOTHING:
                 break;
             case P1_UP:
-                if (direction != DOWN)
-                    direction = UP;
+                if (game->snake->direction != DOWN)
+                    game->snake->direction = UP;
                 break;
             case P1_DOWN:
-                if (direction != UP)
-                    direction = DOWN;
+                if (game->snake->direction != UP)
+                    game->snake->direction = DOWN;
                 break;
             case P1_LEFT:
-                if (direction != RIGHT)
-                    direction = LEFT;
+                if (game->snake->direction != RIGHT)
+                    game->snake->direction = LEFT;
                 break;
             case P1_RIGHT:
-                if (direction != LEFT)
-                    direction = RIGHT;
+                if (game->snake->direction != LEFT)
+                    game->snake->direction = RIGHT;
                 break;
             case PAUSE:
                 paused ^= 1;
                 pause();
                 break;
             case SAVE:
-                save(snake);
+                save(game);
+                break;
+            case LOAD:
+                load(game);
                 break;
             case QUIT:
                 playing = 0;
                 break;
         }
-        update_snake(snake, direction);
         SDL_Delay(100);
     }
-    destroy_field();
+    puts("free game");
+    free_game(game);
 }
 

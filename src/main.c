@@ -2,7 +2,6 @@
 #include <stdio.h>
 
 #include "window.h"
-#include "input.h"
 #include "game.h"
 
 int main(int argc, char *argv[])
