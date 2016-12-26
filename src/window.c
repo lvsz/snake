@@ -28,6 +28,17 @@ void draw_field(char **field)
     SDL_Flip(window);
 }
 
+void clear()
+{
+    SDL_FillRect(window, NULL, WHITE);
+}
+
+void draw_scores()
+{
+    clear();
+
+}
+
 void quit()
 {
     SDL_FreeSurface(window);
@@ -49,7 +60,7 @@ void window_init(char *title)
     }
 
     SDL_WM_SetCaption(title, NULL);
-    SDL_FillRect(window, NULL, 0xFFFFFF00);
+    clear();
 
     atexit(quit);
 }
