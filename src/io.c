@@ -55,11 +55,11 @@ void print_field(char **field)
 void save(Game *game)
 {
     FILE *savefile = fopen(SAVEFILE, "w");
-    for (int i = 0; i < FIELD_HEIGHT; ++i) {
-        for (int j = 0; j < FIELD_WIDTH; ++j) {
-            fputc(game->field[j][i], savefile);
-        }
+
+    for (int i = 0; i < FIELD_WIDTH; ++i) {
+        fwrite(game->field[i], sizeof(char), FIELD_HEIGHT, savefile);
     }
+
     print_snake(savefile, game->snake);
     fclose(savefile);
 }
@@ -74,10 +74,8 @@ void load(Game *game)
         return;
     }
 
-    for (int i = 0; i < FIELD_HEIGHT; ++i) {
-        for (int j = 0; j < FIELD_WIDTH; ++j) {
-            game->field[j][i] = fgetc(savefile);
-        }
+    for (int i = 0; i < FIELD_WIDTH; ++i) {
+        fread(game->field[i], sizeof(char), FIELD_HEIGHT, savefile);
     }
 
     Direction direction;
