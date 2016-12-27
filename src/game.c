@@ -33,6 +33,7 @@ Game *game_init()
     game->score = 0;
     place_snake(game, SNAKE_START_X, SNAKE_START_Y, RIGHT);
 
+    clear_screen();
     return game;
 }
 
@@ -117,7 +118,7 @@ int update_snake(Game *game)
     }
 }
 
-void run_game()
+int run_game()
 {
     Game *game = game_init();
     new_food(game);
@@ -158,8 +159,8 @@ void run_game()
                 load(game);
                 break;
             case QUIT:
-                playing = 0;
-                break;
+                free_game(game);
+                return 0;
         }
 
         playing = update_snake(game);
@@ -168,5 +169,6 @@ void run_game()
 
     handle_score(game->score);
     free_game(game);
+    return score_screen();
 }
 

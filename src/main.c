@@ -8,7 +8,7 @@ int main(int argc, char *argv[])
 {
     window_init("Snake");
 
-    run_game();
+    while(run_game());
     return 0;
 }
 

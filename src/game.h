@@ -11,7 +11,7 @@
 #include "defaults.h"
 #include "types.h"
 
-void run_game();
+int run_game();
 
 #endif /* _GAME_H_ */
 

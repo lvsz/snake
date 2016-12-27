@@ -16,7 +16,6 @@ void handle_score(int score)
             break;
         }
     }
-    draw_scores(scores);
     free(scores);
 }
 

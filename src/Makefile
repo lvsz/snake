@@ -9,7 +9,7 @@ snake: $(OBJ)
 game.o: game.c game.h window.h io.h snake.h score.h defaults.h types.h
 	$(CC) -c $<
 
-window.o: window.c window.h defaults.h
+window.o: window.c window.h io.h defaults.h
 	$(CC) -c $<
 
 io.o: io.c io.h
