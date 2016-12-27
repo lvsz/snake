@@ -11,6 +11,8 @@ Input read_input()
             case SDL_QUIT:
                 return QUIT;
             case SDL_KEYDOWN:
+                printf("%d: ", event.key.keysym.sym);
+                puts(SDL_GetKeyName(event.key.keysym.sym));
                 switch (event.key.keysym.sym) {
                     case SDLK_UP:
                         return P1_UP;
@@ -60,6 +62,7 @@ void save(Game *game)
         fwrite(game->field[i], sizeof(char), FIELD_HEIGHT, savefile);
     }
 
+    fprintf(savefile, "%d;", game->score);
     print_snake(savefile, game->snake);
     fclose(savefile);
 }
@@ -70,7 +73,7 @@ void load(Game *game)
     FILE *savefile = fopen(SAVEFILE, "r");
 
     if (savefile == NULL) {
-        fprintf(stderr, "Load error: %s not found.\n", SAVEFILE);
+        fprintf(stderr, "Error: %s not found.\n", SAVEFILE);
         return;
     }
 
@@ -80,7 +83,8 @@ void load(Game *game)
 
     Direction direction;
     int head_dif, tail_dif;
-    fscanf(savefile, "%d;%d;%d;", &direction, &head_dif, &tail_dif);
+    fscanf(savefile, "%d;%d;", &(game->score), &direction);
+    fscanf(savefile, "%d;%d;", &head_dif, &tail_dif);
     fread(game->snake->body, sizeof(Point), SNAKE_BUFFER, savefile);
 
     game->snake->direction = direction;
@@ -89,5 +93,56 @@ void load(Game *game)
 
     fclose(savefile);
     puts("done loading");
+}
+
+void create_scorefile()
+{
+    HighScore *scores = calloc(NR_OF_SCORES, sizeof(HighScore));
+
+    for (int i = 0; i < NR_OF_SCORES; ++i) {
+        strcpy(scores[i].name, "___");
+    }
+
+    FILE *scorefile = fopen(SCOREFILE, "w");
+
+    if (scorefile == NULL) {
+        fprintf(stderr, "Error: %s cannot be created\n", SCOREFILE);
+        exit(1);
+    }
+
+    fwrite(scores, sizeof(HighScore), NR_OF_SCORES, scorefile);
+    fclose(scorefile);
+    free(scores);
+}
+
+HighScore *get_scores()
+{
+    HighScore *scores = malloc(NR_OF_SCORES * sizeof(HighScore));
+
+    FILE *scorefile = fopen(SCOREFILE, "r");
+    if (scorefile == NULL) {
+        create_scorefile();
+        scorefile = fopen(SCOREFILE, "r");
+        if (scorefile == NULL) {
+            fprintf(stderr, "Error: %s cannot be opened\n", SCOREFILE);
+            exit(1);
+        }
+    }
+
+    fread(scores, sizeof(HighScore), NR_OF_SCORES, scorefile);
+    fclose(scorefile);
+    return scores;
+}
+
+void write_scores(HighScore *scores)
+{
+    FILE *scorefile = fopen(SCOREFILE, "w");
+    if (scorefile == NULL) {
+        fprintf(stderr, "Error: %s cannot be edited\n", SCOREFILE);
+        exit(1);
+    }
+
+    fwrite(scores, sizeof(HighScore), NR_OF_SCORES, scorefile);
+    fclose(scorefile);
 }
 

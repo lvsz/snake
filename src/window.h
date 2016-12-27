@@ -10,5 +10,8 @@ void window_init(char *);
 
 void draw_field(char **);
 
+void draw_scores();
+char *get_name();
+
 #endif /* _WINDOW_H_ */
 

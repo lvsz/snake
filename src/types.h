@@ -22,9 +22,14 @@ typedef struct Snake {
 } Snake;
 
 typedef struct Game {
-    Snake *snake;
     char **field;
+    Snake *snake;
+    int score;
 } Game;
 
+typedef struct HighScore {
+    int score;
+    char name[4];
+} HighScore;
 
 #endif /* _TYPES_H_ */

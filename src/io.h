@@ -26,5 +26,8 @@ void print_point(void *);
 void save(Game *);
 void load(Game *);
 
+HighScore *get_scores();
+void write_scores(HighScore *);
+
 #endif /* _INPUT_H_ */
 
