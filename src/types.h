@@ -34,4 +34,16 @@ typedef struct HighScore {
     char name[4];
 } HighScore;
 
+typedef enum Input {
+    QUIT,
+    P1_UP,
+    P1_DOWN,
+    P1_LEFT,
+    P1_RIGHT,
+    PAUSE,
+    SAVE,
+    LOAD,
+    NOTHING
+} Input;
+
 #endif /* _TYPES_H_ */

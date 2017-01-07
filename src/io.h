@@ -1,5 +1,5 @@
-#ifndef _INPUT_H_
-#define _INPUT_H_
+#ifndef _IO_H_
+#define _IO_H_
 
 #include "SDL/SDL.h"
 
@@ -9,27 +9,15 @@
 #include "types.h"
 #include "defaults.h"
 
-typedef enum Input {
-    QUIT,
-    P1_UP,
-    P1_DOWN,
-    P1_LEFT,
-    P1_RIGHT,
-    PAUSE,
-    SAVE,
-    LOAD,
-    NOTHING
-} Input;
-
 Input read_input();
 
-void print_field(Game *);
 void print_point(void *);
 void save(Game *);
 void load(Game *);
 
 HighScore *get_scores();
 void write_scores(HighScore *);
+void handle_score(int);
 
-#endif /* _INPUT_H_ */
+#endif /* _IO_H_ */
 
