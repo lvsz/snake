@@ -14,6 +14,7 @@ Input read_input();
 void print_point(void *);
 void save(Game *);
 void load(Game *);
+void load_level(Game *, int);
 
 HighScore *get_scores();
 void write_scores(HighScore *);

@@ -64,6 +64,7 @@ int update_snake(Game *game)
 
         switch (game->field[head.x][head.y]) {
             case 's':
+            case 'w':
                 puts("game over");
                 return 0;
             default:

@@ -21,7 +21,6 @@ int main(int argc, char *argv[])
     while(run_game(game));
 
     puts("exiting");
-    puts("qutting window");
     window_quit();
     return 0;
 }

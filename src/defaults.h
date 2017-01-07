@@ -5,6 +5,7 @@
 
 #define SAVEFILE "save.snk"
 #define SCOREFILE "highscores.snk"
+#define LEVELFILE "../Resources/levels/level"
 #define FONTFILE "../Resources/Font.ttf"
 
 #define BLOCK_SIZE 25
@@ -12,7 +13,7 @@
 #define FIELD_WIDTH 20
 #define FIELD_HEIGHT 15
 
-#define NR_OF_SCORES 10
+#define NR_OF_SCORES 25
 
 #define SNAKE_SIZE 3
 #define SNAKE_BUFFER 1000

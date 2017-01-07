@@ -36,7 +36,6 @@ Game *game_init(size_t game_width, size_t game_height)
     game->width = game_width;
     game->height = game_height;
     game->score = 0;
-    place_snake(game, game->width / 2, game->height / 2, RIGHT);
 
     clear_screen();
     return game;
@@ -69,6 +68,25 @@ void clear_game(Game *game)
     free_snake(game->snake);
     place_snake(game, game->width / 2, game->height / 2, RIGHT);
     clear_screen();
+}
+
+void resize_game(Game *game, size_t width, size_t height)
+{
+    window_resize(width, height);
+
+    for (int i = 0; i < game->width; ++i) {
+        free(game->field[i]);
+    }
+
+    free(game->field);
+
+    game->width = width;
+    game->height = height;
+    game->field = malloc(width * sizeof(char *));
+
+    for (int i = 0; i < width; ++i) {
+        game->field[i] = calloc(height, sizeof(char));
+    }
 }
 
 void pause()
@@ -104,6 +122,8 @@ void new_food(Game *game)
 
 int run_game(Game *game)
 {
+    load_level(game, 0);
+    place_snake(game, game->width / 2, game->height / 2, RIGHT);
     new_food(game);
 
     puts("starting");
@@ -132,15 +152,15 @@ int run_game(Game *game)
                 if (game->snake->direction != LEFT)
                     game->snake->direction = RIGHT;
                 break;
-            case PAUSE:
-                paused ^= 1;
-                pause();
-                break;
             case SAVE:
                 save(game);
                 break;
             case LOAD:
                 load(game);
+                draw_field(game);
+            case PAUSE:
+                paused ^= 1;
+                pause();
                 break;
             case QUIT:
                 free_game(game);

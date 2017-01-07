@@ -23,6 +23,7 @@ Input read_input()
                     case SDLK_RIGHT:
                         return P1_RIGHT;
                     case SDLK_ESCAPE:
+                    case SDLK_SPACE:
                     case SDLK_p:
                         return PAUSE;
                     case SDLK_s:
@@ -38,20 +39,6 @@ Input read_input()
         }
     }
     return NOTHING;
-}
-
-void print_field(Game *game)
-{
-    for (int i = 0; i < game->height; ++i) {
-        for (int j = 0; j < game->width; ++j) {
-            if (game->field[j][i] == '\0') {
-                putchar(' ');
-            } else {
-                putchar(game->field[j][i]);
-            }
-        }
-        putchar(10);
-    }
 }
 
 void save(Game *game)
@@ -82,18 +69,7 @@ void load(Game *game)
     fscanf(savefile, "%lu;%lu;", &width, &height);
 
     if (width != game->width || height != game->height) {
-        window_resize(width, height);
-        for (int i = 0; i < game->width; ++i) {
-            free(game->field[i]);
-        }
-        free(game->field);
-
-        game->width = width;
-        game->height = height;
-        game->field = malloc(width * sizeof(char *));
-        for (int i = 0; i < width; ++i) {
-            game->field[i] = malloc(height * sizeof(char));
-        }
+        resize_game(game, width, height);
     }
 
     for (int i = 0; i < game->width; ++i) {
@@ -112,6 +88,42 @@ void load(Game *game)
 
     fclose(savefile);
     puts("done loading");
+}
+
+void load_level(Game *game, int n)
+{
+    puts("loading level");
+    char filename[sizeof(LEVELFILE) + 1];
+    sprintf(filename, "%s%d", LEVELFILE, n);
+
+    FILE *levelfile = fopen(filename, "r");
+    if (levelfile == NULL) {
+        printf("%s not found\n", filename);
+        return;
+    }
+
+    size_t width, height;
+    fscanf(levelfile, "%lu %lu", &width, &height);
+    fseek(levelfile, 1, SEEK_CUR);
+    resize_game(game, width, height);
+    printf("new dims: (%lu, %lu)\n", width, height);
+
+    char *row = malloc((width + 2) * sizeof(char));
+    for (int y = 0; y < height; ++y) {
+        if (fgets(row, width + 2, levelfile) == NULL) {
+            break;
+        }
+
+        printf("line %d/%lu: %s", y, height, row);
+        for (int x = 0; row[x] != '\0' && row[x] != '\n'; ++x) {
+            if (row[x] != ' ') {
+                game->field[x][y] = row[x];
+            }
+        }
+    }
+
+    free(row);
+    fclose(levelfile);
 }
 
 void create_scorefile()
@@ -181,6 +193,7 @@ void handle_score(int score)
             break;
         }
     }
+
     free(scores);
 }
 
