@@ -22,6 +22,7 @@ int main(int argc, char *argv[])
 
     puts("exiting");
     window_quit();
+    free_game(game);
     return 0;
 }
 

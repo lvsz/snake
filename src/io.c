@@ -177,7 +177,7 @@ void write_scores(HighScore *scores)
     fclose(scorefile);
 }
 
-void handle_score(int score)
+int handle_score(int score)
 {
     HighScore *scores = get_scores();
     for (int i = 0; i < NR_OF_SCORES; ++i) {
@@ -187,6 +187,11 @@ void handle_score(int score)
             }
             scores[i].score = score;
             char *name = get_name();
+            if (name == NULL) {
+                free(scores);
+                return 0;
+            }
+
             strcpy(scores[i].name, name);
             free(name);
             write_scores(scores);
@@ -195,5 +200,6 @@ void handle_score(int score)
     }
 
     free(scores);
+    return 1;
 }
 

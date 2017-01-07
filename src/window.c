@@ -163,6 +163,10 @@ char *get_name()
                 } else if (key >= SDLK_0 && key <= SDLK_9 && i < 3) {
                     name[i++] = (char) key;
                 }
+            } else if (event.type == SDL_QUIT) {
+                free(name);
+                name = NULL;
+                entering_text = 0;
             }
         }
     }

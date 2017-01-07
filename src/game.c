@@ -89,12 +89,26 @@ void resize_game(Game *game, size_t width, size_t height)
     }
 }
 
-void pause()
+int pause(Game *game)
 {
     puts("pause");
     window_pause();
-    while (read_input() != PAUSE) {
-        SDL_Delay(100);
+    while (1) {
+        switch (read_input()) {
+            case PAUSE:
+                return 1;
+            case QUIT:
+                return 0;
+            case SAVE:
+                save(game);
+                break;
+            case LOAD:
+                load(game);
+                draw_field(game);
+                break;
+            default:
+                SDL_Delay(100);
+        }
     }
 }
 
@@ -161,10 +175,10 @@ int run_game(Game *game)
                 draw_field(game);
             case PAUSE:
                 paused ^= 1;
-                pause();
-                break;
+                if (pause(game)) {
+                    break;
+                }
             case QUIT:
-                free_game(game);
                 return 0;
         }
 
@@ -172,8 +186,11 @@ int run_game(Game *game)
         SDL_Delay(100);
     }
 
-    handle_score(game->score);
-    clear_game(game);
-    return score_screen();
+    if (handle_score(game->score)) {
+        clear_game(game);
+        return score_screen();
+    } else {
+        return 0;
+    }
 }
 
