@@ -33,6 +33,47 @@ void free_snake(Snake *snake)
     free(snake);
 }
 
+int update_snake(Game *game)
+{
+    Point head = snake_head(game->snake);
+
+    switch (game->snake->direction) {
+        case UP:
+            head.y = (head.y > 0 ? head.y : game->height) - 1;
+            break;
+        case DOWN:
+            head.y = (head.y + 1) % game->height;
+            break;
+        case LEFT:
+            head.x = (head.x > 0 ? head.x : game->width) - 1;
+            break;
+        case RIGHT:
+            head.x = (head.x + 1) % game->width;
+            break;
+    }
+
+    if (is_food(game, head)) {
+        add_head(game->snake, head);
+        game->field[head.x][head.y] = 's';
+        ++(game->score);
+        new_food(game);
+        return 1;
+    } else {
+        Point tail = pop_tail(game->snake);
+        game->field[tail.x][tail.y] = '\0';
+
+        switch (game->field[head.x][head.y]) {
+            case 's':
+                puts("game over");
+                return 0;
+            default:
+                add_head(game->snake, head);
+                game->field[head.x][head.y] = 's';
+                return 1;
+        }
+    }
+}
+
 Point snake_head(Snake *snake)
 {
     if (snake->head == snake->tail) {

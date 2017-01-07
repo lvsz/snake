@@ -14,5 +14,8 @@ int run_game(Game *);
 Game *game_init(size_t, size_t);
 void free_game(Game *);
 
+void new_food(Game *);
+int is_food(Game *, Point);
+
 #endif /* _GAME_H_ */
 

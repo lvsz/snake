@@ -4,11 +4,13 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "game.h"
 #include "types.h"
 #include "defaults.h"
 
 Snake *new_snake(Direction);
 void free_snake(Snake *);
+int update_snake(Game *);
 
 Point snake_head(Snake *);
 void add_head(Snake *, Point);

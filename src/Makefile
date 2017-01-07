@@ -15,7 +15,7 @@ window.o: window.c window.h io.h types.h defaults.h
 io.o: io.c io.h game.h window.h snake.h types.h defaults.h
 	$(CC) -c $<
 
-snake.o: snake.c snake.h types.h defaults.h
+snake.o: snake.c snake.h game.h types.h defaults.h
 	$(CC) -c $<
 
 .PHONY: clean
