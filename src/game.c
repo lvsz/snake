@@ -17,21 +17,26 @@ void place_snake(Game *game, size_t start_x, size_t start_y, Direction direction
     }
 }
 
-Game *game_init()
+Game *game_init(size_t game_width, size_t game_height)
 {
     Game *game;
     if ((game  = malloc(sizeof(Game))) == NULL
-       || (game->field = malloc(FIELD_WIDTH * sizeof(char *))) == NULL) {
+       || (game->field = malloc(game_width * sizeof(char *))) == NULL) {
         fprintf(stderr, "Error: game allocation failed\n");
         exit(1);
     }
 
-    for (size_t i = 0; i < FIELD_WIDTH; ++i) {
-        (game->field)[i] = calloc(FIELD_HEIGHT, sizeof(char));
+    for (size_t i = 0; i < game_width; ++i) {
+        if ((game->field[i] = calloc(game_height, sizeof(char))) == NULL) {
+            fprintf(stderr, "Error: game allocation failed\n");
+            exit(1);
+        }
     }
 
+    game->width = game_width;
+    game->height = game_height;
     game->score = 0;
-    place_snake(game, SNAKE_START_X, SNAKE_START_Y, RIGHT);
+    place_snake(game, game->width / 2, game->height / 2, RIGHT);
 
     clear_screen();
     return game;
@@ -40,13 +45,30 @@ Game *game_init()
 void free_game(Game *game)
 {
 
-    for (size_t i = 0; i < FIELD_WIDTH; ++i) {
+    for (size_t i = 0; i < game->width; ++i) {
         free((game->field)[i]);
     }
 
+    puts("freeing snake");
     free_snake(game->snake);
+    puts("freeing field");
     free(game->field);
+    puts("freeing game");
     free(game);
+    puts("game succesfully freed");
+}
+
+void clear_game(Game *game)
+{
+    game->score = 0;
+    for (int i = 0; i < game->width; ++i) {
+        for (int j = 0; j < game->height; ++j) {
+            game->field[i][j] = '\0';
+        }
+    }
+    free_snake(game->snake);
+    place_snake(game, game->width / 2, game->height / 2, RIGHT);
+    clear_screen();
 }
 
 void pause()
@@ -64,16 +86,19 @@ int is_food(Game *game, Point p)
 
 void new_food(Game *game)
 {
+    int tries = 1;
     srand(time(NULL));
-    size_t x = rand() % FIELD_WIDTH;
-    size_t y = rand() % FIELD_HEIGHT;
+    size_t x = rand() % game->width;
+    size_t y = rand() % game->height;
 
     while (game->field[x][y] != '\0') {
-        x = rand() % FIELD_WIDTH;
-        y = rand() % FIELD_HEIGHT;
+        x = rand() % game->width;
+        y = rand() % game->height;
+        ++tries;
     }
 
     printf("placed food at (%lu, %lu)\n", x, y);
+    printf("tries: %d\n", tries);
     game->field[x][y] = 'f';
 }
 
@@ -83,16 +108,16 @@ int update_snake(Game *game)
 
     switch (game->snake->direction) {
         case UP:
-            head.y = (head.y > 0 ? head.y : FIELD_HEIGHT) - 1;
+            head.y = (head.y > 0 ? head.y : game->height) - 1;
             break;
         case DOWN:
-            head.y = (head.y + 1) % FIELD_HEIGHT;
+            head.y = (head.y + 1) % game->height;
             break;
         case LEFT:
-            head.x = (head.x > 0 ? head.x : FIELD_WIDTH) - 1;
+            head.x = (head.x > 0 ? head.x : game->width) - 1;
             break;
         case RIGHT:
-            head.x = (head.x + 1) % FIELD_WIDTH;
+            head.x = (head.x + 1) % game->width;
             break;
     }
 
@@ -118,17 +143,17 @@ int update_snake(Game *game)
     }
 }
 
-int run_game()
+int run_game(Game *game)
 {
-    Game *game = game_init();
     new_food(game);
 
     puts("starting");
+    clear_screen();
     int playing = 1;
     int paused = 0;
 
     while (playing) {
-        draw_field(game->field);
+        draw_field(game);
         switch (read_input()) {
             case NOTHING:
                 break;
@@ -168,7 +193,7 @@ int run_game()
     }
 
     handle_score(game->score);
-    free_game(game);
+    clear_game(game);
     return score_screen();
 }
 

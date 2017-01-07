@@ -6,9 +6,23 @@
 
 int main(int argc, char *argv[])
 {
-    window_init("Snake");
+    size_t game_width, game_height;
+    if (argc >= 3) {
+        game_width = atoi(argv[1]);
+        game_height = atoi(argv[2]);
+    } else {
+        game_width = 15;
+        game_height = 20;
+    }
 
-    while(run_game());
+    window_init(game_width, game_height);
+    Game *game = game_init(game_width, game_height);
+
+    while(run_game(game));
+
+    puts("exiting");
+    puts("qutting window");
+    window_quit();
     return 0;
 }
 

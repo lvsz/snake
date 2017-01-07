@@ -3,6 +3,8 @@
 
 #include "SDL/SDL.h"
 
+#include "game.h"
+#include "window.h"
 #include "snake.h"
 #include "types.h"
 #include "defaults.h"
@@ -21,7 +23,7 @@ typedef enum Input {
 
 Input read_input();
 
-void print_field(char **);
+void print_field(Game *);
 void print_point(void *);
 void save(Game *);
 void load(Game *);

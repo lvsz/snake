@@ -40,14 +40,14 @@ Input read_input()
     return NOTHING;
 }
 
-void print_field(char **field)
+void print_field(Game *game)
 {
-    for (int i = 0; i < FIELD_HEIGHT; ++i) {
-        for (int j = 0; j < FIELD_WIDTH; ++j) {
-            if (field[j][i] == '\0') {
+    for (int i = 0; i < game->height; ++i) {
+        for (int j = 0; j < game->width; ++j) {
+            if (game->field[j][i] == '\0') {
                 putchar(' ');
             } else {
-                putchar(field[j][i]);
+                putchar(game->field[j][i]);
             }
         }
         putchar(10);
@@ -58,8 +58,9 @@ void save(Game *game)
 {
     FILE *savefile = fopen(SAVEFILE, "w");
 
-    for (int i = 0; i < FIELD_WIDTH; ++i) {
-        fwrite(game->field[i], sizeof(char), FIELD_HEIGHT, savefile);
+    fprintf(savefile, "%lu;%lu;", game->width, game->height);
+    for (int i = 0; i < game->width; ++i) {
+        fwrite(game->field[i], sizeof(char), game->height, savefile);
     }
 
     fprintf(savefile, "%d;", game->score);
@@ -77,8 +78,26 @@ void load(Game *game)
         return;
     }
 
-    for (int i = 0; i < FIELD_WIDTH; ++i) {
-        fread(game->field[i], sizeof(char), FIELD_HEIGHT, savefile);
+    size_t width, height;
+    fscanf(savefile, "%lu;%lu;", &width, &height);
+
+    if (width != game->width || height != game->height) {
+        window_resize(width, height);
+        for (int i = 0; i < game->width; ++i) {
+            free(game->field[i]);
+        }
+        free(game->field);
+
+        game->width = width;
+        game->height = height;
+        game->field = malloc(width * sizeof(char *));
+        for (int i = 0; i < width; ++i) {
+            game->field[i] = malloc(height * sizeof(char));
+        }
+    }
+
+    for (int i = 0; i < game->width; ++i) {
+        fread(game->field[i], sizeof(char), game->height, savefile);
     }
 
     Direction direction;
@@ -144,5 +163,24 @@ void write_scores(HighScore *scores)
 
     fwrite(scores, sizeof(HighScore), NR_OF_SCORES, scorefile);
     fclose(scorefile);
+}
+
+void handle_score(int score)
+{
+    HighScore *scores = get_scores();
+    for (int i = 0; i < NR_OF_SCORES; ++i) {
+        if (score > scores[i].score) {
+            for (int j = NR_OF_SCORES - 1; j > i; --j) {
+                scores[j] = scores[j - 1];
+            }
+            scores[i].score = score;
+            char *name = get_name();
+            strcpy(scores[i].name, name);
+            free(name);
+            write_scores(scores);
+            break;
+        }
+    }
+    free(scores);
 }
 

@@ -5,12 +5,15 @@
 #include "SDL/SDL_ttf.h"
 
 #include "io.h"
+#include "types.h"
 #include "defaults.h"
 
-void window_init(char *);
+void window_init(size_t, size_t);
+void window_quit();
+void window_resize(size_t, size_t);
 void clear_screen();
 
-void draw_field(char **);
+void draw_field(Game *);
 
 int score_screen();
 char *get_name();

@@ -27,7 +27,9 @@ Snake *new_snake(Direction direction)
 
 void free_snake(Snake *snake)
 {
+    puts("freeing snake body");
     free(snake->body);
+    puts("freeing snake");
     free(snake);
 }
 

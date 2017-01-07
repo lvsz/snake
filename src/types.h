@@ -23,6 +23,8 @@ typedef struct Snake {
 
 typedef struct Game {
     char **field;
+    size_t width;
+    size_t height;
     Snake *snake;
     int score;
 } Game;
