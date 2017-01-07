@@ -92,6 +92,7 @@ void resize_game(Game *game, size_t width, size_t height)
 void pause()
 {
     puts("pause");
+    window_pause();
     while (read_input() != PAUSE) {
         SDL_Delay(100);
     }

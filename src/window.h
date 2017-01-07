@@ -11,8 +11,9 @@
 void window_init(size_t, size_t);
 void window_quit();
 void window_resize(size_t, size_t);
-void clear_screen();
+void window_pause();
 
+void clear_screen();
 void draw_field(Game *);
 
 int score_screen();

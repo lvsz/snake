@@ -3,16 +3,18 @@
 static SDL_Surface *window;
 static size_t window_width, window_height;
 
+#define CAPTIONBUFFER 25
+
 #define BLACK SDL_MapRGB(window->format, 0x00, 0x00, 0x00)
 #define WHITE SDL_MapRGB(window->format, 0xFF, 0xFF, 0xFF)
+#define GREEN SDL_MapRGB(window->format, 0x00, 0x99, 0x00)
 #define RED   SDL_MapRGB(window->format, 0xFF, 0x00, 0x00)
 
 void draw_field(Game *game)
 {
-    char *score = calloc(50, sizeof(char));
-    sprintf(score, "%s — score: %d", TITLE, game->score);
-    SDL_WM_SetCaption(score, NULL);
-    free(score);
+    char caption[CAPTIONBUFFER];
+    sprintf(caption, "%s — score: %d", TITLE, game->score);
+    SDL_WM_SetCaption(caption, NULL);
 
     for (int i = 0; i < game->width; ++i) {
         for (int j = 0; j < game->height; ++j) {
@@ -24,10 +26,13 @@ void draw_field(Game *game)
             Uint32 color;
             switch (game->field[i][j]) {
                 case 's':
-                    SDL_FillRect(window, &block, BLACK);
+                    SDL_FillRect(window, &block, GREEN);
                     break;
                 case 'f':
                     SDL_FillRect(window, &block, RED);
+                    break;
+                case 'w':
+                    SDL_FillRect(window, &block, BLACK);
                     break;
                 default:
                     SDL_FillRect(window, &block, WHITE);
@@ -211,9 +216,16 @@ void window_resize(size_t field_width, size_t field_height)
         exit(1);
     }
     window_width = field_width * BLOCK_SIZE;
-    window_height = field_height * BLOCK_SIZE; 
-    puts("new window");
+    window_height = field_height * BLOCK_SIZE;
     window = SDL_SetVideoMode(window_width, window_height, 0,
                               SDL_HWPALETTE | SDL_DOUBLEBUF);
     clear_screen();
 }
+
+void window_pause()
+{
+    char caption[CAPTIONBUFFER];
+    sprintf(caption, "%s — Paused", TITLE);
+    SDL_WM_SetCaption(caption, NULL);
+}
+
