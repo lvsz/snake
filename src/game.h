@@ -7,7 +7,6 @@
 #include "window.h"
 #include "io.h"
 #include "snake.h"
-#include "score.h"
 #include "types.h"
 #include "defaults.h"
 
