@@ -7,12 +7,7 @@ Snake *new_snake(Direction direction)
         fprintf(stderr, "Error: allocation of snake failed\n");
         exit(1);
     }
-    puts("allocating body");
-    snake->body = malloc(SNAKE_BUFFER * sizeof(Point));
-    if (snake == NULL) {
-        fprintf(stderr, "Error: allocation of snake body failed\n");
-        exit(1);
-    }
+
     puts("assigning direction");
     snake->direction = direction;
     puts("assigning head");
@@ -20,15 +15,13 @@ Snake *new_snake(Direction direction)
     puts("assigning tail");
     snake->tail = snake->body;
     puts("assigning EOB");
-    snake->_end_of_buffer = &(snake->body[SNAKE_BUFFER - 1]);
+    snake->eob = &(snake->body[SNAKE_BUFFER - 1]);
 
     return snake;
 }
 
 void free_snake(Snake *snake)
 {
-    puts("freeing snake body");
-    free(snake->body);
     puts("freeing snake");
     free(snake);
 }
@@ -113,7 +106,7 @@ Point snake_head(Snake *snake)
 
 void add_head(Snake *snake, Point p)
 {
-    if (snake->head == snake->_end_of_buffer) {
+    if (snake->head == snake->eob) {
         snake->head = snake->body;
     } else {
         ++(snake->head);
@@ -127,7 +120,7 @@ Point pop_tail(Snake *snake)
     if (snake->head == snake->tail) {
         fprintf(stderr, "Error: calling pop_tail() on empty snake\n");
         exit(1);
-    } else if (snake->tail == snake->_end_of_buffer) {
+    } else if (snake->tail == snake->eob) {
         snake->tail = snake->body;
         return snake->body[SNAKE_BUFFER - 1];
     } else {

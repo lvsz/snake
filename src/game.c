@@ -93,8 +93,9 @@ int pause(Game *game)
 {
     puts("pause");
     window_pause();
+    Input input;
     while (1) {
-        switch (read_input()) {
+        switch (input = read_input()) {
             case PAUSE:
                 return 1;
             case QUIT:
@@ -104,6 +105,19 @@ int pause(Game *game)
                 break;
             case LOAD:
                 load(game);
+                break;
+            case 0:
+            case 1:
+            case 2:
+            case 3:
+            case 4:
+            case 5:
+            case 6:
+            case 7:
+            case 8:
+            case 9:
+                clear_game(game);
+                load_level(game, input);
                 break;
             default:
                 break;
@@ -188,8 +202,7 @@ int run_game(Game *game)
                 break;
             case LOAD:
                 load(game);
-                draw_field(game);
-                return pause(game);
+                break;
             case 0:
             case 1:
             case 2:
@@ -202,8 +215,7 @@ int run_game(Game *game)
             case 9:
                 clear_game(game);
                 load_level(game, input);
-                draw_field(game);
-                return pause(game);
+                break;
             case PAUSE:
                 paused ^= 1;
                 if (pause(game))
@@ -219,7 +231,7 @@ int run_game(Game *game)
         } else if (game->turns % TURNS_BETWEEN_TREATS == TURNS_TO_GET_TREAT) {
             remove_treat(game);
         }
-        printf("finished turn %d\n", game->turns);
+
         SDL_Delay(100);
     }
 

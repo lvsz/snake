@@ -1,6 +1,8 @@
 #ifndef _TYPES_H_
 #define _TYPES_H_
 
+#include "defaults.h"
+
 typedef struct Point {
     size_t x;
     size_t y;
@@ -14,10 +16,10 @@ typedef enum Direction {
 } Direction;
 
 typedef struct Snake {
-    Point *body;
+    Point body[SNAKE_BUFFER];
     Point *head;
     Point *tail;
-    Point *_end_of_buffer;
+    Point *eob;
     Direction direction;
 } Snake;
 
@@ -30,7 +32,7 @@ typedef struct Game {
     char **field;
     size_t width;
     size_t height;
-    Snake *snake;
+    Snake *p1;
     int score;
     int turns;
     char *treat;
