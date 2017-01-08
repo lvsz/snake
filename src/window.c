@@ -8,6 +8,7 @@ static size_t window_width, window_height;
 #define BLACK SDL_MapRGB(window->format, 0x00, 0x00, 0x00)
 #define WHITE SDL_MapRGB(window->format, 0xFF, 0xFF, 0xFF)
 #define GREEN SDL_MapRGB(window->format, 0x00, 0x99, 0x00)
+#define GOLD  SDL_MapRGB(window->format, 0xFF, 0xCC, 0x00)
 #define RED   SDL_MapRGB(window->format, 0xFF, 0x00, 0x00)
 
 void draw_field(Game *game)
@@ -30,6 +31,9 @@ void draw_field(Game *game)
                     break;
                 case 'f':
                     SDL_FillRect(window, &block, RED);
+                    break;
+                case 't':
+                    SDL_FillRect(window, &block, GOLD);
                     break;
                 case 'w':
                     SDL_FillRect(window, &block, BLACK);
@@ -223,7 +227,6 @@ void window_resize(size_t field_width, size_t field_height)
     window_height = field_height * BLOCK_SIZE;
     window = SDL_SetVideoMode(window_width, window_height, 0,
                               SDL_HWPALETTE | SDL_DOUBLEBUF);
-    clear_screen();
 }
 
 void window_pause()

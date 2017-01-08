@@ -10,6 +10,7 @@
 
 Snake *new_snake(Direction);
 void free_snake(Snake *);
+void place_snake(Game *, size_t, size_t, Direction);
 int update_snake(Game *);
 
 Point snake_head(Snake *);

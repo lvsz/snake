@@ -22,14 +22,25 @@ Input read_input()
                         return P1_LEFT;
                     case SDLK_RIGHT:
                         return P1_RIGHT;
-                    case SDLK_ESCAPE:
-                    case SDLK_SPACE:
-                    case SDLK_p:
-                        return PAUSE;
                     case SDLK_s:
                         return SAVE;
                     case SDLK_l:
                         return LOAD;
+                    case SDLK_ESCAPE:
+                    case SDLK_SPACE:
+                    case SDLK_p:
+                        return PAUSE;
+                    case SDLK_0:
+                    case SDLK_1:
+                    case SDLK_2:
+                    case SDLK_3:
+                    case SDLK_4:
+                    case SDLK_5:
+                    case SDLK_6:
+                    case SDLK_7:
+                    case SDLK_8:
+                    case SDLK_9:
+                        return event.key.keysym.sym - '0';
                     default:
                         return NOTHING;
                 }
@@ -50,7 +61,7 @@ void save(Game *game)
         fwrite(game->field[i], sizeof(char), game->height, savefile);
     }
 
-    fprintf(savefile, "%d;", game->score);
+    fprintf(savefile, "%d;%d;", game->turns, game->score);
     print_snake(savefile, game->snake);
     fclose(savefile);
 }
@@ -72,13 +83,17 @@ void load(Game *game)
         resize_game(game, width, height);
     }
 
+    game->treat = NULL;
     for (int i = 0; i < game->width; ++i) {
         fread(game->field[i], sizeof(char), game->height, savefile);
+        if (game->treat == NULL) {
+            game->treat = memchr(game->field[i], 't', game->height);
+        }
     }
 
     Direction direction;
     int head_dif, tail_dif;
-    fscanf(savefile, "%d;%d;", &(game->score), &direction);
+    fscanf(savefile, "%d;%d;%d;", &(game->turns), &(game->score), &direction);
     fscanf(savefile, "%d;%d;", &head_dif, &tail_dif);
     fread(game->snake->body, sizeof(Point), SNAKE_BUFFER, savefile);
 
@@ -88,11 +103,13 @@ void load(Game *game)
 
     fclose(savefile);
     puts("done loading");
+
+    clear_screen();
+    draw_field(game);
 }
 
 void load_level(Game *game, int n)
 {
-    puts("loading level");
     char filename[sizeof(LEVELFILE) + 1];
     sprintf(filename, "%s%d", LEVELFILE, n);
 
@@ -105,8 +122,10 @@ void load_level(Game *game, int n)
     size_t width, height;
     fscanf(levelfile, "%lu %lu", &width, &height);
     fseek(levelfile, 1, SEEK_CUR);
-    resize_game(game, width, height);
-    printf("new dims: (%lu, %lu)\n", width, height);
+
+    if (game->width != width || game->height != height) {
+        resize_game(game, width, height);
+    }
 
     char *row = malloc((width + 2) * sizeof(char));
     for (int y = 0; y < height; ++y) {
@@ -124,11 +143,17 @@ void load_level(Game *game, int n)
 
     free(row);
     fclose(levelfile);
+
+    place_snake(game, game->width / 2, game->height / 2, RIGHT);
+    new_food(game, FOOD);
+
+    clear_screen();
+    draw_field(game);
 }
 
 void create_scorefile()
 {
-    HighScore *scores = calloc(NR_OF_SCORES, sizeof(HighScore));
+    HighScore scores[NR_OF_SCORES];
 
     for (int i = 0; i < NR_OF_SCORES; ++i) {
         strcpy(scores[i].name, "___");
@@ -143,7 +168,6 @@ void create_scorefile()
 
     fwrite(scores, sizeof(HighScore), NR_OF_SCORES, scorefile);
     fclose(scorefile);
-    free(scores);
 }
 
 HighScore *get_scores()

@@ -1,27 +1,14 @@
 #include "game.h"
 
-void place_snake(Game *game, size_t start_x, size_t start_y, Direction direction)
+Game *game_init(size_t game_width, size_t game_height, int level)
 {
-    if (direction != LEFT && direction != RIGHT) {
-        fprintf(stderr, "Invalid intial direction, defaulting to RIGHT\n");
-        direction = RIGHT;
+    Game *game = malloc(sizeof(Game));
+    if (game == NULL) {
+        fprintf(stderr, "Error: game allocation failed\n");
+        exit(1);
     }
 
-    game->snake = new_snake(direction);
-
-    for (int i = SNAKE_SIZE - 1; i >= 0; --i) {
-        size_t x = direction == LEFT ? start_x + i : start_x - i + 1;
-        Point p = {x, start_y};
-        add_head(game->snake, p);
-        game->field[x][start_y] = 's';
-    }
-}
-
-Game *game_init(size_t game_width, size_t game_height)
-{
-    Game *game;
-    if ((game  = malloc(sizeof(Game))) == NULL
-       || (game->field = malloc(game_width * sizeof(char *))) == NULL) {
+    if ((game->field = malloc(game_width * sizeof(char *))) == NULL) {
         fprintf(stderr, "Error: game allocation failed\n");
         exit(1);
     }
@@ -36,8 +23,16 @@ Game *game_init(size_t game_width, size_t game_height)
     game->width = game_width;
     game->height = game_height;
     game->score = 0;
+    game->turns = 0;
+    game->treat = NULL;
 
-    clear_screen();
+    if (level >= 0) {
+        load_level(game, level);
+    } else {
+        place_snake(game, game->width / 2, game->height / 2, RIGHT);
+        new_food(game, FOOD);
+    }
+
     return game;
 }
 
@@ -65,6 +60,9 @@ void clear_game(Game *game)
             game->field[i][j] = '\0';
         }
     }
+
+    game->turns = 0;
+    game->treat = NULL;
     free_snake(game->snake);
     place_snake(game, game->width / 2, game->height / 2, RIGHT);
     clear_screen();
@@ -87,6 +85,8 @@ void resize_game(Game *game, size_t width, size_t height)
     for (int i = 0; i < width; ++i) {
         game->field[i] = calloc(height, sizeof(char));
     }
+
+    draw_field(game);
 }
 
 int pause(Game *game)
@@ -104,11 +104,34 @@ int pause(Game *game)
                 break;
             case LOAD:
                 load(game);
-                draw_field(game);
                 break;
             default:
-                SDL_Delay(100);
+                break;
         }
+
+        draw_field(game);
+        SDL_Delay(20);
+    }
+}
+
+void new_food(Game *game, Food type)
+{
+    srand(time(NULL));
+    size_t x = rand() % game->width;
+    size_t y = rand() % game->height;
+
+    while (game->field[x][y] != '\0') {
+        x = rand() % game->width;
+        y = rand() % game->height;
+    }
+
+    if (type == TREAT) {
+        printf("placed treat at (%lu, %lu)\n", x, y);
+        game->field[x][y] = 't';
+        game->treat = &(game->field[x][y]);
+    } else {
+        printf("placed food at (%lu, %lu)\n", x, y);
+        game->field[x][y] = 'f';
     }
 }
 
@@ -117,38 +140,31 @@ int is_food(Game *game, Point p)
     return game->field[p.x][p.y] == 'f';
 }
 
-void new_food(Game *game)
+int is_treat(Game *game, Point p)
 {
-    int tries = 1;
-    srand(time(NULL));
-    size_t x = rand() % game->width;
-    size_t y = rand() % game->height;
+    return game->field[p.x][p.y] == 't';
+}
 
-    while (game->field[x][y] != '\0') {
-        x = rand() % game->width;
-        y = rand() % game->height;
-        ++tries;
+void remove_treat(Game *game)
+{
+    if (game->treat != NULL && *(game->treat) == 't') {
+       *(game->treat) = '\0'; 
     }
-
-    printf("placed food at (%lu, %lu)\n", x, y);
-    printf("tries: %d\n", tries);
-    game->field[x][y] = 'f';
+    game->treat = NULL;
 }
 
 int run_game(Game *game)
 {
-    load_level(game, 0);
-    place_snake(game, game->width / 2, game->height / 2, RIGHT);
-    new_food(game);
-
     puts("starting");
     clear_screen();
     int playing = 1;
     int paused = 0;
+    Input input;
 
     while (playing) {
         draw_field(game);
-        switch (read_input()) {
+        puts("reading input");
+        switch (input = read_input()) {
             case NOTHING:
                 break;
             case P1_UP:
@@ -173,21 +189,43 @@ int run_game(Game *game)
             case LOAD:
                 load(game);
                 draw_field(game);
+                return pause(game);
+            case 0:
+            case 1:
+            case 2:
+            case 3:
+            case 4:
+            case 5:
+            case 6:
+            case 7:
+            case 8:
+            case 9:
+                clear_game(game);
+                load_level(game, input);
+                draw_field(game);
+                return pause(game);
             case PAUSE:
                 paused ^= 1;
-                if (pause(game)) {
+                if (pause(game))
                     break;
-                }
             case QUIT:
                 return 0;
         }
 
         playing = update_snake(game);
+        game->turns++;
+        if (game->turns % TURNS_BETWEEN_TREATS == 0) {
+            new_food(game, TREAT);
+        } else if (game->turns % TURNS_BETWEEN_TREATS == TURNS_TO_GET_TREAT) {
+            remove_treat(game);
+        }
+        printf("finished turn %d\n", game->turns);
         SDL_Delay(100);
     }
 
     if (handle_score(game->score)) {
         clear_game(game);
+        new_food(game, FOOD);
         return score_screen();
     } else {
         return 0;

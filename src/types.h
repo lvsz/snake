@@ -21,12 +21,19 @@ typedef struct Snake {
     Direction direction;
 } Snake;
 
+typedef enum Food {
+    FOOD,
+    TREAT
+} Food;
+
 typedef struct Game {
     char **field;
     size_t width;
     size_t height;
     Snake *snake;
     int score;
+    int turns;
+    char *treat;
 } Game;
 
 typedef struct HighScore {
@@ -35,6 +42,16 @@ typedef struct HighScore {
 } HighScore;
 
 typedef enum Input {
+    ZERO,
+    ONE,
+    TWO,
+    THREE,
+    FOUR,
+    FIVE,
+    SIX,
+    SEVEN,
+    EIGHT,
+    NINE,
     QUIT,
     P1_UP,
     P1_DOWN,

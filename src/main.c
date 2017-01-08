@@ -6,17 +6,19 @@
 
 int main(int argc, char *argv[])
 {
+    Game *game;
     size_t game_width, game_height;
     if (argc >= 3) {
         game_width = atoi(argv[1]);
         game_height = atoi(argv[2]);
+        game = game_init(game_width, game_height, -1);
     } else {
-        game_width = 15;
-        game_height = 20;
+        game = game_init(0, 0, 0);
+        game_width = game->width;
+        game_height = game->height;
     }
 
     window_init(game_width, game_height);
-    Game *game = game_init(game_width, game_height);
 
     while(run_game(game));
 

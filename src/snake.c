@@ -33,6 +33,23 @@ void free_snake(Snake *snake)
     free(snake);
 }
 
+void place_snake(Game *game, size_t start_x, size_t start_y, Direction direction)
+{
+    if (direction != LEFT && direction != RIGHT) {
+        fprintf(stderr, "Invalid intial direction, defaulting to RIGHT\n");
+        direction = RIGHT;
+    }
+
+    game->snake = new_snake(direction);
+
+    for (int i = SNAKE_SIZE - 1; i >= 0; --i) {
+        size_t x = direction == LEFT ? start_x + i : start_x - i + 1;
+        Point p = {x, start_y};
+        add_head(game->snake, p);
+        game->field[x][start_y] = 's';
+    }
+}
+
 int update_snake(Game *game)
 {
     Point head = snake_head(game->snake);
@@ -53,10 +70,18 @@ int update_snake(Game *game)
     }
 
     if (is_food(game, head)) {
+        puts("eating food");
         add_head(game->snake, head);
         game->field[head.x][head.y] = 's';
-        ++(game->score);
-        new_food(game);
+        game->score++;
+        new_food(game, FOOD);
+        return 1;
+    } else if (is_treat(game, head)) {
+        puts("eating treat");
+        add_head(game->snake, head);
+        game->field[head.x][head.y] = 's';
+        game->score += TREAT_POINTS;
+        remove_treat(game);
         return 1;
     } else {
         Point tail = pop_tail(game->snake);

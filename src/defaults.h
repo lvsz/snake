@@ -18,5 +18,9 @@
 #define SNAKE_SIZE 3
 #define SNAKE_BUFFER 1000
 
+#define TREAT_POINTS 5
+#define TURNS_BETWEEN_TREATS 50
+#define TURNS_TO_GET_TREAT 15
+
 #endif /* _DEFAULTS_H_ */
 
