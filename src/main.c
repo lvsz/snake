@@ -12,7 +12,7 @@ int main(int argc, char *argv[])
         game_width = atoi(argv[1]);
         game_height = atoi(argv[2]);
         game = game_init(game_width, game_height, -1);
-    } else {
+    } else if (argc ) {
         game = game_init(0, 0, 0);
         game_width = game->width;
         game_height = game->height;
@@ -20,6 +20,7 @@ int main(int argc, char *argv[])
 
     window_init(game_width, game_height);
 
+    puts("starting game");
     while(run_game(game));
 
     puts("exiting");

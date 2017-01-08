@@ -16,10 +16,12 @@ typedef enum Direction {
 } Direction;
 
 typedef struct Snake {
+    char player;
     Point body[SNAKE_BUFFER];
     Point *head;
     Point *tail;
     Point *eob;
+    int score;
     Direction direction;
 } Snake;
 
@@ -32,9 +34,11 @@ typedef struct Game {
     char **field;
     size_t width;
     size_t height;
+    int players;
     Snake *p1;
-    int score;
+    Snake *p2;
     int turns;
+    int speed;
     char *treat;
 } Game;
 
@@ -59,9 +63,14 @@ typedef enum Input {
     P1_DOWN,
     P1_LEFT,
     P1_RIGHT,
+    P2_UP,
+    P2_DOWN,
+    P2_LEFT,
+    P2_RIGHT,
     PAUSE,
     SAVE,
     LOAD,
+    MULTIPLAYER,
     NOTHING
 } Input;
 

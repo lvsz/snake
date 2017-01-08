@@ -22,14 +22,16 @@ Game *game_init(size_t game_width, size_t game_height, int level)
 
     game->width = game_width;
     game->height = game_height;
-    game->score = 0;
+    game->speed = DEFAULT_SPEED;
     game->turns = 0;
+    game->players = 1;
     game->treat = NULL;
+    game->p2 = NULL;
 
     if (level >= 0) {
         load_level(game, level);
     } else {
-        place_snake(game, game->width / 2, game->height / 2, RIGHT);
+        place_snake(game, 1, P1_START, RIGHT);
         new_food(game, FOOD);
     }
 
@@ -38,13 +40,13 @@ Game *game_init(size_t game_width, size_t game_height, int level)
 
 void free_game(Game *game)
 {
-
     for (size_t i = 0; i < game->width; ++i) {
         free((game->field)[i]);
     }
 
     puts("freeing snake");
-    free_snake(game->snake);
+    free(game->p1);
+    free(game->p2);
     puts("freeing field");
     free(game->field);
     puts("freeing game");
@@ -54,7 +56,6 @@ void free_game(Game *game)
 
 void clear_game(Game *game)
 {
-    game->score = 0;
     for (int i = 0; i < game->width; ++i) {
         for (int j = 0; j < game->height; ++j) {
             game->field[i][j] = '\0';
@@ -63,8 +64,13 @@ void clear_game(Game *game)
 
     game->turns = 0;
     game->treat = NULL;
-    free_snake(game->snake);
-    place_snake(game, game->width / 2, game->height / 2, RIGHT);
+    free(game->p1);
+    place_snake(game, 1, P1_START, RIGHT);
+    if (game->players > 1) {
+        free(game->p2);
+        place_snake(game, 2, P2_START, LEFT);
+    }
+
     clear_screen();
 }
 
@@ -89,6 +95,18 @@ void resize_game(Game *game, size_t width, size_t height)
     draw_field(game);
 }
 
+void toggle_multiplayer(Game *game)
+{
+    if (game->players > 1) {
+        game->players = 1;
+        clear_snake(game, game->p2);
+        game->p2 = NULL;
+    } else {
+        game->players = 2;
+        place_snake(game, 2, P2_START, LEFT);
+    }
+}
+
 int pause(Game *game)
 {
     puts("pause");
@@ -105,6 +123,9 @@ int pause(Game *game)
                 break;
             case LOAD:
                 load(game);
+                break;
+            case MULTIPLAYER:
+                toggle_multiplayer(game);
                 break;
             case 0:
             case 1:
@@ -172,36 +193,53 @@ int run_game(Game *game)
     puts("starting");
     clear_screen();
     int playing = 1;
-    int paused = 0;
     Input input;
 
     while (playing) {
         draw_field(game);
-        puts("reading input");
         switch (input = read_input()) {
             case NOTHING:
                 break;
             case P1_UP:
-                if (game->snake->direction != DOWN)
-                    game->snake->direction = UP;
+                if (game->p1->direction != DOWN)
+                    game->p1->direction = UP;
                 break;
             case P1_DOWN:
-                if (game->snake->direction != UP)
-                    game->snake->direction = DOWN;
+                if (game->p1->direction != UP)
+                    game->p1->direction = DOWN;
                 break;
             case P1_LEFT:
-                if (game->snake->direction != RIGHT)
-                    game->snake->direction = LEFT;
+                if (game->p1->direction != RIGHT)
+                    game->p1->direction = LEFT;
                 break;
             case P1_RIGHT:
-                if (game->snake->direction != LEFT)
-                    game->snake->direction = RIGHT;
+                if (game->p1->direction != LEFT)
+                    game->p1->direction = RIGHT;
+                break;
+            case P2_UP:
+                if (game->players > 1 && game->p2->direction != DOWN)
+                    game->p2->direction = UP;
+                break;
+            case P2_DOWN:
+                if (game->players > 1 && game->p2->direction != UP)
+                    game->p2->direction = DOWN;
+                break;
+            case P2_LEFT:
+                if (game->players > 1 && game->p2->direction != RIGHT)
+                    game->p2->direction = LEFT;
+                break;
+            case P2_RIGHT:
+                if (game->players > 1 && game->p2->direction != LEFT)
+                    game->p2->direction = RIGHT;
                 break;
             case SAVE:
                 save(game);
                 break;
             case LOAD:
                 load(game);
+                break;
+            case MULTIPLAYER:
+                toggle_multiplayer(game);
                 break;
             case 0:
             case 1:
@@ -217,14 +255,22 @@ int run_game(Game *game)
                 load_level(game, input);
                 break;
             case PAUSE:
-                paused ^= 1;
                 if (pause(game))
                     break;
             case QUIT:
                 return 0;
         }
 
-        playing = update_snake(game);
+        if (game->players > 1) {
+            move_snake(game, game->p1);
+            move_snake(game, game->p2);
+            playing &= check_snake(game, game->p1);
+            playing &= check_snake(game, game->p2);
+        } else {
+            move_snake(game, game->p1);
+            playing &= check_snake(game, game->p1);
+        }
+
         game->turns++;
         if (game->turns % TURNS_BETWEEN_TREATS == 0) {
             new_food(game, TREAT);
@@ -232,13 +278,14 @@ int run_game(Game *game)
             remove_treat(game);
         }
 
-        SDL_Delay(100);
+        SDL_Delay(game->speed);
     }
 
-    if (handle_score(game->score)) {
+    draw_field(game);
+    if (handle_score(game)) {
         clear_game(game);
         new_food(game, FOOD);
-        return score_screen();
+        return game->players > 1 ? 1 : score_screen();
     } else {
         return 0;
     }

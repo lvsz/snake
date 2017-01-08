@@ -1,6 +1,6 @@
 #include "snake.h"
 
-Snake *new_snake(Direction direction)
+Snake *new_snake(int player, Direction direction)
 {
     Snake *snake = malloc(sizeof(Snake));
     if (snake == NULL) {
@@ -8,46 +8,50 @@ Snake *new_snake(Direction direction)
         exit(1);
     }
 
-    puts("assigning direction");
+    snake->player = player + '0';
+    snake->score = 0;
     snake->direction = direction;
-    puts("assigning head");
     snake->head = &(snake->body[SNAKE_BUFFER - 1]);
-    puts("assigning tail");
     snake->tail = snake->body;
-    puts("assigning EOB");
     snake->eob = &(snake->body[SNAKE_BUFFER - 1]);
 
     return snake;
 }
 
-void free_snake(Snake *snake)
-{
-    puts("freeing snake");
-    free(snake);
-}
-
-void place_snake(Game *game, size_t start_x, size_t start_y, Direction direction)
+void place_snake(Game *game, int player, Point p, Direction direction)
 {
     if (direction != LEFT && direction != RIGHT) {
         fprintf(stderr, "Invalid intial direction, defaulting to RIGHT\n");
         direction = RIGHT;
     }
 
-    game->snake = new_snake(direction);
+    Snake **snake = player == 1 ? &(game->p1) : &(game->p2);
+    *snake = new_snake(player, direction);
 
     for (int i = SNAKE_SIZE - 1; i >= 0; --i) {
-        size_t x = direction == LEFT ? start_x + i : start_x - i + 1;
-        Point p = {x, start_y};
-        add_head(game->snake, p);
-        game->field[x][start_y] = 's';
+        size_t x = direction == LEFT ? p.x + i : p.x - i + 1;
+        Point tmp = {x, p.y};
+        add_head(*snake, tmp);
+        game->field[x][p.y] = (*snake)->player;
     }
 }
 
-int update_snake(Game *game)
+void clear_snake(Game *game, Snake *snake)
 {
-    Point head = snake_head(game->snake);
+    while (snake->tail != snake->head) {
+        Point tail = pop_tail(snake);
+        game->field[tail.x][tail.y] = '\0';
+    }
 
-    switch (game->snake->direction) {
+    game->field[snake->head->x][snake->head->y] = '\0';
+    free(snake);
+}
+
+void move_snake(Game *game, Snake *snake)
+{
+    Point head = snake_head(snake);
+
+    switch (snake->direction) {
         case UP:
             head.y = (head.y > 0 ? head.y : game->height) - 1;
             break;
@@ -64,32 +68,35 @@ int update_snake(Game *game)
 
     if (is_food(game, head)) {
         puts("eating food");
-        add_head(game->snake, head);
-        game->field[head.x][head.y] = 's';
-        game->score++;
+        add_head(snake, head);
+        snake->score++;
         new_food(game, FOOD);
-        return 1;
     } else if (is_treat(game, head)) {
         puts("eating treat");
-        add_head(game->snake, head);
-        game->field[head.x][head.y] = 's';
-        game->score += TREAT_POINTS;
+        add_head(snake, head);
+        snake->score += TREAT_POINTS;
         remove_treat(game);
-        return 1;
     } else {
-        Point tail = pop_tail(game->snake);
+        Point tail = pop_tail(snake);
         game->field[tail.x][tail.y] = '\0';
+        add_head(snake, head);
+    }
+}
 
-        switch (game->field[head.x][head.y]) {
-            case 's':
-            case 'w':
-                puts("game over");
-                return 0;
-            default:
-                add_head(game->snake, head);
-                game->field[head.x][head.y] = 's';
-                return 1;
-        }
+int check_snake (Game *game, Snake *snake)
+{
+    Point head = snake_head(snake);
+    switch (game->field[head.x][head.y]) {
+        case '1':
+        case '2':
+        case 'w':
+            puts("game over");
+            if (game->players > 1)
+                snake->score = -1;
+            return 0;
+        default:
+            game->field[head.x][head.y] = snake->player;
+            return 1;
     }
 }
 
@@ -126,15 +133,5 @@ Point pop_tail(Snake *snake)
     } else {
         return *((snake->tail)++);
     }
-}
-
-void print_snake(FILE *stream, Snake *snake)
-{
-    fprintf(stream, "%d;", snake->direction);
-    fprintf(stream, "%d;", (int) (snake->head - snake->body));
-    fprintf(stream, "%d;", (int) (snake->tail - snake->body));
-    fprintf(stdout, "%d;", (int) (snake->head - snake->body));
-    fprintf(stdout, "%d;", (int) (snake->tail - snake->body));
-    fwrite(snake->body, sizeof(Point), SNAKE_BUFFER, stream);
 }
 

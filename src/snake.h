@@ -8,16 +8,14 @@
 #include "types.h"
 #include "defaults.h"
 
-Snake *new_snake(Direction);
-void free_snake(Snake *);
-void place_snake(Game *, size_t, size_t, Direction);
-int update_snake(Game *);
+void place_snake(Game *, int, Point, Direction);
+void clear_snake(Game *, Snake *);
+void move_snake(Game *, Snake *);
+int check_snake(Game *, Snake *);
 
 Point snake_head(Snake *);
 void add_head(Snake *, Point);
 Point pop_tail(Snake *);
-
-void print_snake(FILE *, Snake *);
 
 #endif /* _SNAKE_H_ */
 

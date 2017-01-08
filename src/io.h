@@ -18,7 +18,7 @@ void load_level(Game *, int);
 
 HighScore *get_scores();
 void write_scores(HighScore *);
-int handle_score(int);
+int handle_score(Game *);
 
 #endif /* _IO_H_ */
 

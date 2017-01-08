@@ -18,6 +18,7 @@ void draw_field(Game *);
 
 int score_screen();
 char *get_name();
+int show_winner(int);
 
 #endif /* _WINDOW_H_ */
 
