@@ -3,7 +3,7 @@
 static SDL_Surface *window;
 static size_t window_width, window_height;
 
-#define TITLEBUFFER 25
+#define TITLEBUFFER 40
 
 #define BLACK SDL_MapRGB(window->format, 0x00, 0x00, 0x00)
 #define WHITE SDL_MapRGB(window->format, 0xFF, 0xFF, 0xFF)
@@ -17,8 +17,15 @@ void draw_field(Game *game)
     char title[TITLEBUFFER];
     if (game->players > 1) {
         sprintf(title, "%s — multiplayer", TITLE);
+    } else if (game->level > 0) {
+        sprintf(title, "%s — level %d — score: %d/%d",
+                TITLE,
+                game->level,
+                game->total_score + game->p1->score,
+                game->total_score + TARGETSCORE);
     } else {
-        sprintf(title, "%s — score: %d", TITLE, game->p1->score);
+        sprintf(title, "%s — score: %d",
+                TITLE, game->p1->score);
     }
 
     SDL_WM_SetCaption(title, NULL);
@@ -287,5 +294,10 @@ void window_pause()
     char title[TITLEBUFFER];
     sprintf(title, "%s — Paused", TITLE);
     SDL_WM_SetCaption(title, NULL);
+}
+
+void delay(int n)
+{
+    SDL_Delay(n);
 }
 

@@ -69,7 +69,7 @@ void move_snake(Game *game, Snake *snake)
     if (is_food(game, head)) {
         puts("eating food");
         add_head(snake, head);
-        snake->score++;
+        snake->score += 1;
         new_food(game, FOOD);
     } else if (is_treat(game, head)) {
         puts("eating treat");

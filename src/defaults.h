@@ -24,6 +24,8 @@
 #define TURNS_BETWEEN_TREATS 50
 #define TURNS_TO_GET_TREAT 15
 
+#define TARGETSCORE (int) (game->width * game->height / 8)
+
 #define P1_START (Point) { game->width / 2, game->height / 2 }
 #define P2_START (Point) { game->width / 2, game->height / 2 + 1 }
 

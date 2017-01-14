@@ -22,8 +22,10 @@ Game *game_init(size_t game_width, size_t game_height, int level)
 
     game->width = game_width;
     game->height = game_height;
+    game->level = 0;
     game->speed = DEFAULT_SPEED;
     game->turns = 0;
+    game->total_score = 0;
     game->players = 1;
     game->treat = NULL;
     game->p2 = NULL;
@@ -62,7 +64,10 @@ void clear_game(Game *game)
         }
     }
 
+    game->level = 0;
+    game->total_score = 0;
     game->turns = 0;
+    game->speed = DEFAULT_SPEED;
     game->treat = NULL;
     free(game->p1);
     place_snake(game, 1, P1_START, RIGHT);
@@ -91,8 +96,45 @@ void resize_game(Game *game, size_t width, size_t height)
     for (int i = 0; i < width; ++i) {
         game->field[i] = calloc(height, sizeof(char));
     }
+}
 
-    draw_field(game);
+void new_food(Game *game, Food type)
+{
+    srand(time(NULL));
+    size_t x = rand() % game->width;
+    size_t y = rand() % game->height;
+
+    while (game->field[x][y] != '\0') {
+        x = rand() % game->width;
+        y = rand() % game->height;
+    }
+
+    if (type == TREAT) {
+        printf("placed treat at (%lu, %lu)\n", x, y);
+        game->field[x][y] = 't';
+        game->treat = &(game->field[x][y]);
+    } else {
+        printf("placed food at (%lu, %lu)\n", x, y);
+        game->field[x][y] = 'f';
+    }
+}
+
+int is_food(Game *game, Point p)
+{
+    return game->field[p.x][p.y] == 'f';
+}
+
+int is_treat(Game *game, Point p)
+{
+    return game->field[p.x][p.y] == 't';
+}
+
+void remove_treat(Game *game)
+{
+    if (game->treat != NULL && *(game->treat) == 't') {
+       *(game->treat) = '\0'; 
+    }
+    game->treat = NULL;
 }
 
 void toggle_multiplayer(Game *game)
@@ -145,56 +187,35 @@ int pause(Game *game)
         }
 
         draw_field(game);
-        SDL_Delay(20);
+        delay(20);
     }
 }
 
-void new_food(Game *game, Food type)
+int next_level(Game *game)
 {
-    srand(time(NULL));
-    size_t x = rand() % game->width;
-    size_t y = rand() % game->height;
-
-    while (game->field[x][y] != '\0') {
-        x = rand() % game->width;
-        y = rand() % game->height;
-    }
-
-    if (type == TREAT) {
-        printf("placed treat at (%lu, %lu)\n", x, y);
-        game->field[x][y] = 't';
-        game->treat = &(game->field[x][y]);
+    if (game->level >= 1
+            && game->level <= 9
+            && game->players == 1
+            && game->p1->score >= TARGETSCORE) {
+        int score = game->total_score +  game->p1->score;
+        int next = game->level + 1;
+        clear_game(game);
+        load_level(game, next);
+        game->total_score = score;
+        return 1;
     } else {
-        printf("placed food at (%lu, %lu)\n", x, y);
-        game->field[x][y] = 'f';
+        return 0;
     }
-}
-
-int is_food(Game *game, Point p)
-{
-    return game->field[p.x][p.y] == 'f';
-}
-
-int is_treat(Game *game, Point p)
-{
-    return game->field[p.x][p.y] == 't';
-}
-
-void remove_treat(Game *game)
-{
-    if (game->treat != NULL && *(game->treat) == 't') {
-       *(game->treat) = '\0'; 
-    }
-    game->treat = NULL;
 }
 
 int run_game(Game *game)
 {
-    puts("starting");
     clear_screen();
-    int playing = 1;
-    Input input;
+    int playing = pause(game);
+    if (!playing)
+        return 0;
 
+    Input input;
     while (playing) {
         draw_field(game);
         switch (input = read_input()) {
@@ -237,6 +258,10 @@ int run_game(Game *game)
                 break;
             case LOAD:
                 load(game);
+                if (pause(game))
+                    break;
+                else
+                    return 0;
                 break;
             case MULTIPLAYER:
                 toggle_multiplayer(game);
@@ -253,7 +278,10 @@ int run_game(Game *game)
             case 9:
                 clear_game(game);
                 load_level(game, input);
-                break;
+                if (pause(game))
+                    break;
+                else
+                    return 0;
             case PAUSE:
                 if (pause(game))
                     break;
@@ -278,11 +306,13 @@ int run_game(Game *game)
             remove_treat(game);
         }
 
-        SDL_Delay(game->speed);
+        delay(game->speed);
     }
 
     draw_field(game);
-    if (handle_score(game)) {
+    if (next_level(game)) {
+        return 1;
+    } else if (handle_score(game)) {
         clear_game(game);
         new_food(game, FOOD);
         return game->players > 1 ? 1 : score_screen();

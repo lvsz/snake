@@ -63,7 +63,7 @@ void print_snake(FILE *stream, Snake *snake)
 {
     putc(snake->player, stream);
     fprintf(stream, "%d;", snake->score);
-    fprintf(stream, "%d;", snake->direction);
+    fprintf(stream, "%u;", snake->direction);
     fprintf(stream, "%d;", (int) (snake->head - snake->body));
     fprintf(stream, "%d;", (int) (snake->tail - snake->body));
     fwrite(snake->body, sizeof(Point), SNAKE_BUFFER, stream);
@@ -78,7 +78,11 @@ void save(Game *game)
         fwrite(game->field[i], sizeof(char), game->height, savefile);
     }
 
-    fprintf(savefile, "%d;%d;", game->players, game->turns);
+    fprintf(savefile, "%d;", game->level);
+    fprintf(savefile, "%d;", game->total_score);
+    fprintf(savefile, "%d;", game->turns);
+    fprintf(savefile, "%d;", game->speed);
+    fprintf(savefile, "%d;", game->players);
     print_snake(savefile, game->p1);
     if (game->players > 1) {
         print_snake(savefile, game->p2);
@@ -112,17 +116,22 @@ void load(Game *game)
         }
     }
 
-    Direction direction;
-    int players, head_dif, tail_dif;
-    fscanf(savefile, "%d;%d;", &players, &(game->turns));
+    int players;
+    fscanf(savefile, "%d;", &(game->level));
+    fscanf(savefile, "%d;", &(game->target_score));
+    fscanf(savefile, "%d;", &(game->turns));
+    fscanf(savefile, "%d;", &(game->speed));
+    fscanf(savefile, "%d;", &players);
     if (players < game->players) {
         clear_snake(game, game->p2);
         game->p2 = NULL;
     }
 
+    Direction direction;
+    int head_dif, tail_dif;
     game->players = players;
     game->p1->player = getc(savefile);
-    fscanf(savefile, "%d;%d;", &(game->p1->score), &(game->p1->direction));
+    fscanf(savefile, "%d;%u;", &(game->p1->score), &(game->p1->direction));
     fscanf(savefile, "%d;%d;", &head_dif, &tail_dif);
     fread(game->p1->body, sizeof(Point), SNAKE_BUFFER, savefile);
     game->p1->head = game->p1->body + head_dif;
@@ -133,7 +142,7 @@ void load(Game *game)
             game->p2 = malloc(sizeof(Snake));
 
         game->p2->player = getc(savefile);
-        fscanf(savefile, "%d;%d;", &(game->p2->score), &(game->p2->direction));
+        fscanf(savefile, "%d;%u;", &(game->p2->score), &(game->p2->direction));
         fscanf(savefile, "%d;%d;", &head_dif, &tail_dif);
         fread(game->p2->body, sizeof(Point), SNAKE_BUFFER, savefile);
         game->p2->head = game->p2->body + head_dif;
@@ -149,12 +158,14 @@ void load(Game *game)
 
 void load_level(Game *game, int n)
 {
+    game->level = n;
+
     char filename[sizeof(LEVELFILE) + 1];
     sprintf(filename, "%s%d", LEVELFILE, n);
 
     FILE *levelfile = fopen(filename, "r");
     if (levelfile == NULL) {
-        printf("%s not found\n", filename);
+        fprintf(stderr, "%s not found\n", filename);
         return;
     }
 
@@ -272,6 +283,10 @@ int handle_score(Game *game)
             if (name == NULL) {
                 free(scores);
                 return 0;
+            } else if (name[0] == '_') {
+                free(name);
+                free(scores);
+                return 1;
             }
 
             strcpy(scores[i].name, name);
