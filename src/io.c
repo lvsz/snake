@@ -118,7 +118,7 @@ void load(Game *game)
 
     int players;
     fscanf(savefile, "%d;", &(game->level));
-    fscanf(savefile, "%d;", &(game->target_score));
+    fscanf(savefile, "%d;", &(game->total_score));
     fscanf(savefile, "%d;", &(game->turns));
     fscanf(savefile, "%d;", &(game->speed));
     fscanf(savefile, "%d;", &players);

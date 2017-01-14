@@ -39,7 +39,6 @@ typedef struct Game {
     Snake *p2;
     int level;
     int total_score;
-    int target_score;
     int turns;
     int speed;
     char *treat;
