@@ -3,6 +3,7 @@
 static SDL_Surface *window;
 static size_t window_width, window_height;
 
+static Mix_Chunk *sound;
 #define TITLEBUFFER 40
 
 #define BLACK SDL_MapRGB(window->format, 0x00, 0x00, 0x00)
@@ -273,15 +274,13 @@ void window_init(size_t field_width, size_t field_height)
 
     SDL_WM_SetCaption(TITLE, NULL);
     clear_screen();
+
+    atexit(window_quit);
 }
 
 void window_resize(size_t field_width, size_t field_height)
 {
-    SDL_Quit();
-    if (SDL_Init(SDL_INIT_VIDEO < 0)) {
-        fprintf(stderr, "Could not initialize SDL: %s\n", SDL_GetError());
-        exit(1);
-    }
+    SDL_FreeSurface(window);
 
     window_width = field_width * BLOCK_SIZE;
     window_height = field_height * BLOCK_SIZE;
