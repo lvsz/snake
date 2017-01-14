@@ -22,7 +22,7 @@ void draw_field(Game *game)
                 TITLE,
                 game->level,
                 game->total_score + game->p1->score,
-                game->total_score + TARGETSCORE);
+                game->total_score + TARGET_SCORE);
     } else {
         sprintf(title, "%s — score: %d",
                 TITLE, game->p1->score);

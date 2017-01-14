@@ -196,7 +196,7 @@ int next_level(Game *game)
     if (game->level >= 1
             && game->level <= 9
             && game->players == 1
-            && game->p1->score >= TARGETSCORE) {
+            && game->p1->score >= TARGET_SCORE) {
         int score = game->total_score +  game->p1->score;
         int next = game->level + 1;
         clear_game(game);
