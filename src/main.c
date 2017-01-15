@@ -13,7 +13,7 @@ int main(int argc, char *argv[])
         game_height = atoi(argv[2]);
         game = game_init(game_width, game_height, -1);
     } else {
-        game = game_init(0, 0, 0);
+        game = game_init(0, 0, 1);
         game_width = game->width;
         game_height = game->height;
     }
