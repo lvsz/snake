@@ -272,7 +272,7 @@ int handle_score(Game *game)
     }
 
     HighScore *scores = get_scores();
-    int score = game->p1->score;
+    int score = game->total_score + game->p1->score;
     for (int i = 0; i < NR_OF_SCORES; ++i) {
         if (score > scores[i].score) {
             for (int j = NR_OF_SCORES - 1; j > i; --j) {
