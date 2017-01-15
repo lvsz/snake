@@ -289,14 +289,11 @@ int run_game(Game *game)
                 return 0;
         }
 
+        move_snake(game, game->p1);
+        playing &= check_snake(game, game->p1);
         if (game->players > 1) {
-            move_snake(game, game->p1);
             move_snake(game, game->p2);
-            playing &= check_snake(game, game->p1);
             playing &= check_snake(game, game->p2);
-        } else {
-            move_snake(game, game->p1);
-            playing &= check_snake(game, game->p1);
         }
 
         game->turns++;
