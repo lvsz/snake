@@ -5,7 +5,7 @@
 
 #define SAVEFILE "save.snk"
 #define SCOREFILE "highscores.snk"
-#define LEVELFILE "../Resources/levels/level"
+#define LEVELFILE "../levels/level"
 #define FONTFILE "../Resources/Font.ttf"
 
 #define BLOCK_SIZE 25
