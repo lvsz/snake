@@ -272,6 +272,8 @@ void window_init(size_t field_width, size_t field_height)
         exit(1);
     }
 
+    sound_init();
+
     SDL_WM_SetCaption(TITLE, NULL);
     clear_screen();
 

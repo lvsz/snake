@@ -67,12 +67,12 @@ void move_snake(Game *game, Snake *snake)
     }
 
     if (is_food(game, head)) {
-        puts("eating food");
+        food_sound();
         add_head(snake, head);
         snake->score += 1;
         new_food(game, FOOD);
     } else if (is_treat(game, head)) {
-        puts("eating treat");
+        treat_sound();
         add_head(snake, head);
         snake->score += TREAT_POINTS;
         remove_treat(game);
@@ -91,6 +91,7 @@ int check_snake (Game *game, Snake *snake)
         case '2':
         case 'w':
             puts("game over");
+            death_sound();
             if (game->players > 1)
                 snake->score = -1;
             return 0;

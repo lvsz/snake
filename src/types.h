@@ -77,3 +77,4 @@ typedef enum Input {
 } Input;
 
 #endif /* _TYPES_H_ */
+

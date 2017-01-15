@@ -3,8 +3,8 @@
 
 #include "SDL/SDL.h"
 #include "SDL/SDL_ttf.h"
-#include "SDL/SDL_mixer.h"
 
+#include "sound.h"
 #include "io.h"
 #include "types.h"
 #include "defaults.h"
