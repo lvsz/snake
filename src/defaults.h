@@ -7,8 +7,8 @@
 /* locations of files that are used */
 #define SAVEFILE "save.snk"
 #define SCOREFILE "highscores.snk"
-#define LEVELFILE "../levels/level"
-#define FONTFILE "../Resources/Font.ttf"
+#define LEVELFILE "levels/level"
+#define FONTFILE "Resources/fonts/SourceCodePro-Bold.ttf"
 
 /* length of a block's side in pixels
  * increasing this will also increase the window's size */
