@@ -42,6 +42,7 @@ typedef struct Game {
     int turns;
     int speed;
     char *treat;
+    int paused;
 } Game;
 
 typedef struct HighScore {

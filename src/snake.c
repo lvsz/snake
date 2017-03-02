@@ -13,18 +13,24 @@ Snake *new_snake(int player, Direction direction)
     snake->direction = direction;
     snake->head = &(snake->body[SNAKE_BUFFER - 1]);
     snake->tail = snake->body;
+    /* eob = end of buffer */
     snake->eob = &(snake->body[SNAKE_BUFFER - 1]);
 
     return snake;
 }
 
+/* places snake on the game's field
+ * player can be 1 or 2 */
 void place_snake(Game *game, int player, Point p, Direction direction)
 {
     if (direction != LEFT && direction != RIGHT) {
+        /* allowing vertical placement would make it more complex
+         * and I don't have any use for it at the moment */
         fprintf(stderr, "Invalid intial direction, defaulting to RIGHT\n");
         direction = RIGHT;
     }
 
+    /* a pointer to a snake pointer to avoid segfaults when uninitialised */
     Snake **snake = player == 1 ? &(game->p1) : &(game->p2);
     *snake = new_snake(player, direction);
 
@@ -36,6 +42,7 @@ void place_snake(Game *game, int player, Point p, Direction direction)
     }
 }
 
+/* remove the snake from the field */
 void clear_snake(Game *game, Snake *snake)
 {
     while (snake->tail != snake->head) {
@@ -47,6 +54,8 @@ void clear_snake(Game *game, Snake *snake)
     free(snake);
 }
 
+/* moves the snake and checks for food
+ * the new "head" won't be added to the field until it checks for obstacles */
 void move_snake(Game *game, Snake *snake)
 {
     Point head = snake_head(snake);
@@ -83,6 +92,8 @@ void move_snake(Game *game, Snake *snake)
     }
 }
 
+/* checks if the snake hit a wall, itself, or another snake
+ * if not, add the new head to the field so it can be drawn */
 int check_snake (Game *game, Snake *snake)
 {
     Point head = snake_head(snake);
@@ -101,6 +112,8 @@ int check_snake (Game *game, Snake *snake)
     }
 }
 
+/* get the pointer to the snake's head
+ * exits when there is not head */
 Point snake_head(Snake *snake)
 {
     if (snake->head == snake->tail) {
@@ -111,18 +124,21 @@ Point snake_head(Snake *snake)
     }
 }
 
-
+/* add a new head to the snake at point P */
 void add_head(Snake *snake, Point p)
 {
     if (snake->head == snake->eob) {
+        /* if at end of buffer, add it to the start of the buffer */
         snake->head = snake->body;
     } else {
         ++(snake->head);
     }
+
     snake->head->x = p.x;
     snake->head->y = p.y;
 }
 
+/* returns pointer to the snake's tail and removes it */
 Point pop_tail(Snake *snake)
 {
     if (snake->head == snake->tail) {
@@ -130,7 +146,7 @@ Point pop_tail(Snake *snake)
         exit(1);
     } else if (snake->tail == snake->eob) {
         snake->tail = snake->body;
-        return snake->body[SNAKE_BUFFER - 1];
+        return *(snake->eob);
     } else {
         return *((snake->tail)++);
     }

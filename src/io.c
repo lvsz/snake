@@ -2,8 +2,6 @@
 
 Input read_input()
 {
-    int mouse_x, mouse_y;
-
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
         switch (event.type) {
@@ -51,14 +49,16 @@ Input read_input()
                     default:
                         return NOTHING;
                 }
-            case SDL_MOUSEBUTTONDOWN:
-                puts("mouseclick");
+
+            default:
                 break;
         }
     }
+
     return NOTHING;
 }
 
+/* used to save the Snake struct to a file */
 void print_snake(FILE *stream, Snake *snake)
 {
     putc(snake->player, stream);
@@ -69,6 +69,7 @@ void print_snake(FILE *stream, Snake *snake)
     fwrite(snake->body, sizeof(Point), SNAKE_BUFFER, stream);
 }
 
+/* saves the current state of the game to a file */
 void save(Game *game)
 {
     FILE *savefile = fopen(SAVEFILE, "w");
@@ -91,9 +92,9 @@ void save(Game *game)
     fclose(savefile);
 }
 
+/* load a previously saved game */
 void load(Game *game)
 {
-    puts("loading");
     FILE *savefile = fopen(SAVEFILE, "r");
 
     if (savefile == NULL) {
@@ -150,12 +151,10 @@ void load(Game *game)
     }
 
     fclose(savefile);
-    puts("done loading");
-
     clear_screen();
-    draw_field(game);
 }
 
+/* load a level from a level file */
 void load_level(Game *game, int n)
 {
     game->level = n;
@@ -205,14 +204,15 @@ void load_level(Game *game, int n)
     new_food(game, FOOD);
 
     clear_screen();
-    draw_field(game);
 }
 
+/* create an "empty" score file when none found */
 void create_scorefile()
 {
     HighScore scores[NR_OF_SCORES];
 
     for (int i = 0; i < NR_OF_SCORES; ++i) {
+        scores[i].score = 0;
         strcpy(scores[i].name, "___");
     }
 
@@ -227,13 +227,14 @@ void create_scorefile()
     fclose(scorefile);
 }
 
+/* read and return highscores from a file */
 HighScore *get_scores()
 {
     HighScore *scores = malloc(NR_OF_SCORES * sizeof(HighScore));
 
     FILE *scorefile = fopen(SCOREFILE, "r");
     if (scorefile == NULL) {
-        create_scorefile();
+        create_scorefile(); /* create one when not found */
         scorefile = fopen(SCOREFILE, "r");
         if (scorefile == NULL) {
             fprintf(stderr, "Error: %s cannot be opened\n", SCOREFILE);
@@ -246,6 +247,7 @@ HighScore *get_scores()
     return scores;
 }
 
+/* write highscore to a file */
 void write_scores(HighScore *scores)
 {
     FILE *scorefile = fopen(SCOREFILE, "w");
@@ -258,6 +260,9 @@ void write_scores(HighScore *scores)
     fclose(scorefile);
 }
 
+/* check the score and add it to the highscores when needed
+ * returns 1 to on success
+ * returns 0 when player hit quit */
 int handle_score(Game *game)
 {
     if (game->players > 1) {
@@ -284,6 +289,7 @@ int handle_score(Game *game)
                 free(scores);
                 return 0;
             } else if (name[0] == '_') {
+                /* player did not enter a name, so don't add it to file */
                 free(name);
                 free(scores);
                 return 1;

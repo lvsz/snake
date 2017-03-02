@@ -3,7 +3,7 @@
 static SDL_Surface *window;
 static size_t window_width, window_height;
 
-static Mix_Chunk *sound;
+/* buffer used for window bar text */
 #define TITLEBUFFER 40
 
 #define BLACK SDL_MapRGB(window->format, 0x00, 0x00, 0x00)
@@ -16,7 +16,9 @@ static Mix_Chunk *sound;
 void draw_field(Game *game)
 {
     char title[TITLEBUFFER];
-    if (game->players > 1) {
+    if (game->paused) {
+        sprintf(title, "%s — paused", TITLE);
+    } else if (game->players > 1) {
         sprintf(title, "%s — multiplayer", TITLE);
     } else if (game->level > 0) {
         sprintf(title, "%s — level %d — score: %d/%d",
@@ -31,6 +33,7 @@ void draw_field(Game *game)
 
     SDL_WM_SetCaption(title, NULL);
 
+    /* go over the 2D array to draw and draw the appropriate block */
     for (int i = 0; i < game->width; ++i) {
         for (int j = 0; j < game->height; ++j) {
             SDL_Rect block = { 1 + i * BLOCK_SIZE
@@ -40,22 +43,22 @@ void draw_field(Game *game)
                              };
             Uint32 color;
             switch (game->field[i][j]) {
-                case '1':
+                case '1': /* player 1's snake */
                     SDL_FillRect(window, &block, GREEN);
                     break;
-                case '2':
+                case '2' /* player 2's snake */:
                     SDL_FillRect(window, &block, BLUE);
                     break;
-                case 'f':
+                case 'f': /* food */
                     SDL_FillRect(window, &block, RED);
                     break;
-                case 't':
+                case 't': /* treat */
                     SDL_FillRect(window, &block, GOLD);
                     break;
-                case 'w':
+                case 'w': /* wall */
                     SDL_FillRect(window, &block, BLACK);
                     break;
-                default:
+                default: /* empty */
                     SDL_FillRect(window, &block, WHITE);
                     break;
             }
@@ -70,6 +73,9 @@ void clear_screen()
     SDL_FillRect(window, NULL, WHITE);
 }
 
+/* show highscores
+ * returns 1 to start a new game
+ * returns 0 to quit the game */
 int score_screen()
 {
     HighScore *hs = get_scores();
@@ -90,6 +96,7 @@ int score_screen()
                         , text_width
                         , BLOCK_SIZE - 2
                         };
+
     SDL_FillRect(window, &score_bg, WHITE);
     SDL_BlitSurface(score_fg, NULL, window, &score_bg);
 
@@ -101,6 +108,7 @@ int score_screen()
                             , text_width
                             , BLOCK_SIZE - 2
                             };
+
         SDL_FillRect(window, &score_bg, WHITE);
         SDL_BlitSurface(score_fg, NULL, window, &score_bg);
     }
@@ -132,15 +140,21 @@ int score_screen()
     }
 }
 
+/* get the player's name to add to the high score file
+ * part of this would fit better in io.c, but right now
+ * that'd just add unnecessary complexity
+ * will return NULL when player hit quit */
 char *get_name()
 {
     TTF_Font *font = TTF_OpenFont(FONTFILE, BLOCK_SIZE * 2 / 3);
 
-    char *name = calloc(4, sizeof(char));
+    char *name = calloc(4, sizeof(char));  /* limited to 3 letters */
     strcpy(name, "___");
-    char *box = calloc(12, sizeof(char));
+
+    char box[sizeof(" NAME: ___ ")];
     sprintf(box, " NAME: %s ", name);
 
+    /* get width in pixels when drawn with the loaded font */
     int box_width;
     TTF_SizeText(font, box, &box_width, NULL);
 
@@ -170,7 +184,7 @@ char *get_name()
                 } else if (key == SDLK_BACKSPACE && i > 0) {
                     name[--i] = '_';
                 } else if (key >= SDLK_a && key <= SDLK_z && i < 3) {
-                    name[i++] = (char) key ^ 32;
+                    name[i++] = (char) key ^ 32; /* switches to uppercase */
                 } else if (key >= SDLK_0 && key <= SDLK_9 && i < 3) {
                     name[i++] = (char) key;
                 }
@@ -182,11 +196,14 @@ char *get_name()
         }
     }
 
-    free(box);
     TTF_CloseFont(font);
     return name;
 }
 
+/* check who won in multiplayer game
+ * assumes player 1 has a green snake
+ * and player 2 has a blue snake
+ * returns 0 when player hit quit */
 int show_winner(int player_nr)
 {
     TTF_Font *font = TTF_OpenFont(FONTFILE, BLOCK_SIZE * 2 / 3);
@@ -209,6 +226,7 @@ int show_winner(int player_nr)
                   , text_width
                   , BLOCK_SIZE - 2
                   };
+
     SDL_Surface *fg = TTF_RenderText_Blended(font, winner, font_color);
 
     SDL_FillRect(window, &bg, BLACK);
@@ -280,6 +298,9 @@ void window_init(size_t field_width, size_t field_height)
     atexit(window_quit);
 }
 
+/* resizes window when loading a level with different dimensions
+ * for some reason also seems to relocate the window on Linux
+ * which would require using SDL2 to fix */
 void window_resize(size_t field_width, size_t field_height)
 {
     SDL_FreeSurface(window);
@@ -297,6 +318,7 @@ void window_pause()
     SDL_WM_SetCaption(title, NULL);
 }
 
+/* wraps SDL's delay function to make switching frameworks easier */
 void delay(int n)
 {
     SDL_Delay(n);
