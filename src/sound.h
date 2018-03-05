@@ -3,9 +3,9 @@
 
 #include "SDL/SDL_mixer.h"
 
-#define FOOD_SOUND "../Resources/sound/food.wav"
-#define TREAT_SOUND "../Resources/sound/treat.wav"
-#define DEATH_SOUND "../Resources/sound/death.wav"
+#define FOOD_SOUND  "Resources/sound/food.wav"
+#define TREAT_SOUND "Resources/sound/treat.wav"
+#define DEATH_SOUND "Resources/sound/death.wav"
 
 void sound_init();
 
